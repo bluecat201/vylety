@@ -315,6 +315,11 @@ function spawnHeart(x, y) {
 }
 
 function toggleLike(key, btn, event) {
+  // fallback pro event (některé prohlížeče)
+  if (!event) event = window.event;
+
+  const x = event.clientX || 0;
+  const y = event.clientY || 0;
   if (liked.has(key)) liked.delete(key);
   else liked.add(key);
 
@@ -431,3 +436,4 @@ renderCities();
 
 </body>
 </html>
+
