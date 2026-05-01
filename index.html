@@ -16,7 +16,7 @@
       color: #1f2937;
     }
 
-    header { text-align: center; padding: 60px 20px 40px; }
+    header { text-align: center; padding: 60px 20px 20px; }
 
     header h1 {
       font-size: 2.8rem;
@@ -30,16 +30,26 @@
 
     .container { max-width: 1100px; margin: auto; padding: 20px; }
 
+    .actions {
+      text-align: center;
+      margin: 10px 0 30px;
+    }
+
+    .btn {
+      border: none;
+      padding: 10px 15px;
+      border-radius: 999px;
+      cursor: pointer;
+      background: linear-gradient(90deg, #6366f1, #ec4899);
+      color: white;
+      font-weight: 600;
+      margin: 5px;
+    }
+
     .city-title {
       margin-top: 40px;
       font-size: 1.6rem;
       color: #4f46e5;
-    }
-
-    .section-title {
-      margin-top: 15px;
-      font-size: 1.1rem;
-      color: #6b7280;
     }
 
     .grid {
@@ -55,6 +65,7 @@
       padding: 15px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.08);
       transition: 0.3s ease;
+      position: relative;
     }
 
     .card:hover { transform: translateY(-6px); }
@@ -71,26 +82,30 @@
     .tag-hotel { background: #6366f1; }
     .tag-restaurant { background: #ec4899; }
 
-    .rating {
-      font-size: 0.85rem;
-      margin: 5px 0;
-    }
+    .rating { font-size: 0.85rem; margin: 5px 0; }
+    .price { font-weight: 600; color: #10b981; margin: 5px 0; }
 
-    .price {
-      font-weight: 600;
-      color: #10b981;
-      margin: 5px 0;
-    }
-
-    .card a {
-      display: inline-block;
-      margin-top: 10px;
-      padding: 8px 15px;
+    .btn-like {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      border: none;
+      background: white;
       border-radius: 999px;
-      background: linear-gradient(90deg, #6366f1, #ec4899);
-      color: white;
-      text-decoration: none;
-      font-size: 0.85rem;
+      padding: 5px 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      font-size: 14px;
+    }
+
+    .liked { background: #fee2e2; }
+
+    .itinerary {
+      margin-top: 30px;
+      padding: 15px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
     }
 
     footer { text-align: center; padding: 30px; color: #9ca3af; font-size: 0.85rem; }
@@ -103,15 +118,22 @@
   <p>Plánování společných dobrodružství</p>
 </header>
 
-<div class="container">
-  <div id="cities"></div>
+<div class="actions">
+  <button class="btn" onclick="renderCities()">Zobrazit vše</button>
+  <button class="btn" onclick="generateItinerary()">🎒 Víkendový itinerář</button>
 </div>
 
-<footer>
-  Pro nás dva ✨
-</footer>
+<div class="container">
+  <div id="cities"></div>
+  <div id="itinerary"></div>
+</div>
+
+<footer>Pro nás dva ✨</footer>
 
 <script>
+
+  let liked = new Set(JSON.parse(localStorage.getItem("likedPlaces") || "[]"));
+
   const data = {
     hotels: [
       {
@@ -217,35 +239,33 @@
     ]
   };
 
-  function getCities() {
-    const all = [...data.hotels, ...data.restaurants];
-    return [...new Set(all.map(item => item.city))];
+  function saveLikes() {
+    localStorage.setItem("likedPlaces", JSON.stringify([...liked]));
+  }
+
+  function toggleLike(key, btn) {
+    if (liked.has(key)) liked.delete(key);
+    else liked.add(key);
+    saveLikes();
+    renderCities();
   }
 
   function createCard(item, type) {
     const card = document.createElement("div");
     card.className = "card";
 
+    const key = type + item.name + item.city;
+    const isLiked = liked.has(key);
+
     const tagClass = type === "hotel" ? "tag-hotel" : "tag-restaurant";
     const tagText = type === "hotel" ? "Hotel" : "Restaurace";
 
-    let ratingHTML = "";
-
-    if (type === "hotel") {
-      // hotely: jen číslo 1–10
-      ratingHTML = `<div class="rating">⭐ ${item.rating} / 10</div>`;
-    } else {
-      // restaurace: hvězdičky 1–5 + číslo
-      const max = 5;
-      const filled = Math.round(item.rating);
-      let stars = "";
-      for (let i = 1; i <= max; i++) {
-        stars += i <= filled ? "★" : "☆";
-      }
-      ratingHTML = `<div class="rating">${stars} ${item.rating} / 5</div>`;
-    }
+    const ratingHTML = type === "hotel"
+      ? `<div class="rating">⭐ ${item.rating} / 10</div>`
+      : `<div class="rating">⭐ ${item.rating} / 5</div>`;
 
     card.innerHTML = `
+      <button class="btn-like" onclick="toggleLike('${key}')">${isLiked ? "❤️" : "👍"}</button>
       <div class="city-label ${tagClass}">${tagText}</div>
       <h3>${item.name}</h3>
       <p>${item.description}</p>
@@ -256,53 +276,80 @@
 
     return card;
   }
-  
+
+  function getCities() {
+    return [...new Set([...data.hotels, ...data.restaurants].map(i => i.city))];
+  }
+
   function renderCities() {
+    document.getElementById("itinerary").innerHTML = "";
     const container = document.getElementById("cities");
     container.innerHTML = "";
 
-    const cities = getCities();
-
-    cities.forEach(city => {
-      const cityBlock = document.createElement("div");
+    getCities().forEach(city => {
+      const block = document.createElement("div");
 
       const title = document.createElement("div");
       title.className = "city-title";
       title.textContent = city;
 
-      const hotelsTitle = document.createElement("div");
-      hotelsTitle.className = "section-title";
-      hotelsTitle.textContent = "🏨 Hotely";
+      const grid = document.createElement("div");
+      grid.className = "grid";
 
-      const hotelsGrid = document.createElement("div");
-      hotelsGrid.className = "grid";
+      [...data.hotels.filter(h => h.city === city).map(h => ({...h, type:"hotel"})),
+       ...data.restaurants.filter(r => r.city === city).map(r => ({...r, type:"restaurant"}))]
+      .forEach(item => grid.appendChild(createCard(item, item.type)));
 
-      data.hotels
-        .filter(h => h.city === city)
-        .forEach(h => hotelsGrid.appendChild(createCard(h, "hotel")));
-
-      const restTitle = document.createElement("div");
-      restTitle.className = "section-title";
-      restTitle.textContent = "🍽️ Restaurace";
-
-      const restGrid = document.createElement("div");
-      restGrid.className = "grid";
-
-      data.restaurants
-        .filter(r => r.city === city)
-        .forEach(r => restGrid.appendChild(createCard(r, "restaurant")));
-
-      cityBlock.appendChild(title);
-      cityBlock.appendChild(hotelsTitle);
-      cityBlock.appendChild(hotelsGrid);
-      cityBlock.appendChild(restTitle);
-      cityBlock.appendChild(restGrid);
-
-      container.appendChild(cityBlock);
+      block.appendChild(title);
+      block.appendChild(grid);
+      container.appendChild(block);
     });
   }
 
+  function generateItinerary() {
+    const container = document.getElementById("cities");
+    const out = document.getElementById("itinerary");
+
+    container.innerHTML = "";
+    out.innerHTML = "";
+
+    const likedItems = [...liked];
+
+    let selected = [];
+
+    data.hotels.forEach(h => {
+      const key = "hotel" + h.name + h.city;
+      if (liked.has(key)) selected.push({ ...h, type: "hotel" });
+    });
+
+    data.restaurants.forEach(r => {
+      const key = "restaurant" + r.name + r.city;
+      if (liked.has(key)) selected.push({ ...r, type: "restaurant" });
+    });
+
+    if (selected.length === 0) {
+      out.innerHTML = `<div class="itinerary">❤️ Nemáš nic vybrané</div>`;
+      return;
+    }
+
+    const city = selected[0].city;
+
+    const hotels = selected.filter(i => i.type === "hotel");
+    const restaurants = selected.filter(i => i.type === "restaurant");
+
+    out.innerHTML = `
+      <div class="itinerary">
+        <h2>🎒 Víkend v ${city}</h2>
+        <h3>🏨 Hotel</h3>
+        ${hotels.map(h => `<p>${h.name} ⭐ ${h.rating}/10</p>`).join("")}
+        <h3>🍽️ Restaurace</h3>
+        ${restaurants.map(r => `<p>${r.name} ⭐ ${r.rating}/5</p>`).join("")}
+      </div>
+    `;
+  }
+
   renderCities();
+
 </script>
 
 </body>
