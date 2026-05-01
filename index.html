@@ -15,6 +15,20 @@
       background: linear-gradient(135deg, #eef2ff, #fdf2f8);
       color: #1f2937;
       overflow-x: hidden;
+      transition: background 0.6s ease, color 0.6s ease;
+    }
+
+    /* 🌙 ROMANTICKÝ MÓD */
+    body.romantic {
+      background: radial-gradient(circle at top, #1e1b4b, #0f172a 70%);
+      color: #f9fafb;
+    }
+
+    body.romantic .city-title { color: #a5b4fc; }
+    body.romantic .card {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
     }
 
     header { text-align: center; padding: 60px 20px 20px; }
@@ -25,16 +39,21 @@
       background: linear-gradient(90deg, #6366f1, #ec4899);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
+      animation: gradientMove 6s infinite linear;
+    }
+
+    @keyframes gradientMove {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
     }
 
     header p { margin-top: 10px; color: #6b7280; }
 
+    body.romantic header p { color: #c7d2fe; }
+
     .container { max-width: 1100px; margin: auto; padding: 20px; }
 
-    .actions {
-      text-align: center;
-      margin: 10px 0 30px;
-    }
+    .actions { text-align: center; margin: 10px 0 30px; }
 
     .btn {
       border: none;
@@ -45,7 +64,10 @@
       color: white;
       font-weight: 600;
       margin: 5px;
+      transition: 0.2s;
     }
+
+    .btn:hover { transform: translateY(-2px); }
 
     .city-title {
       margin-top: 40px;
@@ -53,21 +75,24 @@
       color: #4f46e5;
     }
 
-    /* 🧊 GLASSMORPHISM KARTY */
+    /* 🧊 GLASS */
     .card {
       background: rgba(255, 255, 255, 0.55);
       backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.3);
       border-radius: 20px;
       padding: 15px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-      transition: 0.3s ease;
       position: relative;
       overflow: hidden;
+      transform-style: preserve-3d;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
 
-    .card:hover { transform: translateY(-6px); }
+    /* 🔥 HOVER TILT + GLOW */
+    .card:hover {
+      transform: rotateX(3deg) rotateY(-3deg) translateY(-6px);
+      box-shadow: 0 20px 40px rgba(99,102,241,0.25);
+    }
 
     .grid {
       display: grid;
@@ -89,8 +114,8 @@
     .tag-restaurant { background: #ec4899; }
 
     .rating { font-size: 0.85rem; margin: 5px 0; }
+    .price { font-weight: 600; color: #10b981; margin: 5px 0; }
 
-    /* 🔥 HEZKÉ TLAČÍTKO OTEVŘÍT */
     .card a {
       display: inline-flex;
       align-items: center;
@@ -110,13 +135,7 @@
     .card a:hover {
       transform: translateY(-2px);
       box-shadow: 0 10px 20px rgba(236, 72, 153, 0.25);
-      filter: brightness(1.05);
     }
-
-    .card a:active {
-      transform: scale(0.97);
-    }
-    .price { font-weight: 600; color: #10b981; margin: 5px 0; }
 
     .btn-like {
       position: absolute;
@@ -127,14 +146,10 @@
       border-radius: 999px;
       padding: 5px 8px;
       cursor: pointer;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       font-size: 14px;
       z-index: 2;
     }
 
-    .liked { background: #fee2e2; }
-
-    /* ❤️ ANIMACE SRDCE */
     .heart-float {
       position: absolute;
       font-size: 18px;
@@ -147,26 +162,34 @@
       100% { opacity: 0; transform: translateY(-60px) scale(1.5); }
     }
 
+    /* ✨ třpytky */
+    .sparkle {
+      position: fixed;
+      width: 4px;
+      height: 4px;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.7;
+      animation: sparkle 3s linear infinite;
+    }
+
+    @keyframes sparkle {
+      0% { transform: translateY(0); opacity: 0; }
+      50% { opacity: 1; }
+      100% { transform: translateY(-200px); opacity: 0; }
+    }
+
+    .map { margin-top: 10px; border-radius: 15px; overflow: hidden; }
+    iframe { width: 100%; height: 200px; border: 0; }
+
     .itinerary {
       margin-top: 30px;
       padding: 15px;
       background: white;
       border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
     }
 
-    /* 🗺️ MAPA */
-    .map {
-      margin-top: 10px;
-      border-radius: 15px;
-      overflow: hidden;
-    }
-
-    iframe {
-      width: 100%;
-      height: 200px;
-      border: 0;
-    }
+    body.romantic .itinerary { background: rgba(255,255,255,0.08); }
 
     footer { text-align: center; padding: 30px; color: #9ca3af; font-size: 0.85rem; }
   </style>
@@ -174,13 +197,15 @@
 <body>
 
 <header>
-  <h1>🌍 Naše výlety ❤️</h1>
-  <p>Plánování společných dobrodružství</p>
+  <h1 id="title">🌍 Naše výlety ❤️</h1>
+  <p id="subtitle">Plánování společných dobrodružství</p>
 </header>
 
 <div class="actions">
   <button class="btn" onclick="renderCities()">Zobrazit vše</button>
   <button class="btn" onclick="generateItinerary()">🎒 Víkendový itinerář</button>
+  <button class="btn" onclick="toggleRomantic()">🌙 Temný mód</button>
+  
 </div>
 
 <div class="container">
@@ -191,8 +216,13 @@
 <footer>Pro nás dva ✨</footer>
 
 <script>
-
-let liked = new Set(JSON.parse(localStorage.getItem("likedPlaces") || "[]"));
+// načtení z URL (sdílený link má prioritu)
+const params = new URLSearchParams(window.location.search);
+let likedFromUrl = params.get('likes');
+let liked = new Set(
+  likedFromUrl ? JSON.parse(decodeURIComponent(likedFromUrl))
+               : JSON.parse(localStorage.getItem("likedPlaces") || "[]")
+);
 
 const data = {
     hotels: [
@@ -299,8 +329,44 @@ const data = {
     ]
   };
 
+function toggleRomantic() {
+  document.body.classList.toggle("romantic");
+
+  const isOn = document.body.classList.contains("romantic");
+  document.getElementById("title").textContent = isOn ? "🌙 Plán pro nás dva ❤️" : "🌍 Naše výlety ❤️";
+  document.getElementById("subtitle").textContent = isOn ? "Večer, klid, společný čas ✨" : "Plánování společných dobrodružství";
+
+  if (isOn) startSparkles();
+}
+
+function startSparkles() {
+  for (let i = 0; i < 20; i++) {
+    const s = document.createElement("div");
+    s.className = "sparkle";
+    s.style.left = Math.random() * window.innerWidth + "px";
+    s.style.top = window.innerHeight + "px";
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 3000);
+  }
+}
+
 function saveLikes() {
   localStorage.setItem("likedPlaces", JSON.stringify([...liked]));
+}
+
+function shareSelection() {
+  if (liked.size === 0) {
+    alert('Nejdřív něco označ ❤️');
+    return;
+  }
+  const encoded = encodeURIComponent(JSON.stringify([...liked]));
+  const url = `${window.location.origin}${window.location.pathname}?likes=${encoded}`;
+
+  navigator.clipboard.writeText(url).then(() => {
+    alert('Odkaz zkopírován 💌');
+  }).catch(() => {
+    prompt('Zkopíruj odkaz:', url);
+  });
 }
 
 function spawnHeart(x, y) {
@@ -310,23 +376,16 @@ function spawnHeart(x, y) {
   heart.style.left = x + "px";
   heart.style.top = y + "px";
   document.body.appendChild(heart);
-
   setTimeout(() => heart.remove(), 1000);
 }
 
 function toggleLike(key, btn, event) {
-  // fallback pro event (některé prohlížeče)
   if (!event) event = window.event;
-
-  const x = event.clientX || 0;
-  const y = event.clientY || 0;
   if (liked.has(key)) liked.delete(key);
   else liked.add(key);
-
   saveLikes();
+  spawnHeart(event.clientX || 0, event.clientY || 0);
   renderCities();
-
-  spawnHeart(event.clientX, event.clientY);
 }
 
 function createCard(item, type) {
@@ -336,16 +395,12 @@ function createCard(item, type) {
   const key = type + item.name + item.city;
   const isLiked = liked.has(key);
 
-  const tagClass = type === "hotel" ? "tag-hotel" : "tag-restaurant";
-  const tagText = type === "hotel" ? "Hotel" : "Restaurace";
-
   const ratingHTML = type === "hotel"
     ? `<div class="rating">⭐ ${item.rating} / 10</div>`
     : `<div class="rating">⭐ ${item.rating} / 5</div>`;
 
   card.innerHTML = `
     <button class="btn-like" onclick="toggleLike('${key}', this, event)">${isLiked ? "❤️" : "👍"}</button>
-    <div class="city-label ${tagClass}">${tagText}</div>
     <h3>${item.name}</h3>
     <p>${item.description}</p>
     ${ratingHTML}
@@ -419,6 +474,10 @@ function generateItinerary() {
   const hotels = selected.filter(i => i.type === "hotel");
   const restaurants = selected.filter(i => i.type === "restaurant");
 
+  // vytvoření sdílecího odkazu jen pro tento výběr
+  const encoded = encodeURIComponent(JSON.stringify([...liked]));
+  const shareUrl = `${window.location.origin}${window.location.pathname}?likes=${encoded}`;
+
   out.innerHTML = `
     <div class="itinerary">
       <h2>🎒 Víkend v ${city}</h2>
@@ -426,12 +485,21 @@ function generateItinerary() {
       ${hotels.map(h => `<p>${h.name} ⭐ ${h.rating}/10</p>`).join("")}
       <h3>🍽️ Restaurace</h3>
       ${restaurants.map(r => `<p>${r.name} ⭐ ${r.rating}/5</p>`).join("")}
+      <br>
+      <button class="btn" onclick="copyItineraryLink('${shareUrl}')">💌 Sdílet tenhle plán</button>
     </div>
   `;
 }
 
-renderCities();
+function copyItineraryLink(url) {
+  navigator.clipboard.writeText(url).then(() => {
+    alert('Odkaz na víkend zkopírován 💌');
+  }).catch(() => {
+    prompt('Zkopíruj odkaz:', url);
+  });
+}
 
+renderCities();
 </script>
 
 </body>
