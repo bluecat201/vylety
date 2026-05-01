@@ -445,7 +445,7 @@ function createCard(item, type, key){
   <button class="btn-like" onclick="toggleLike('${key}',event)">${liked.has(key)?"❤️":"👍"}</button>
   <div class="tag ${type}">${type}</div>
   <h3>${item.name}</h3>
-  <p>${item.description.substring(0, 70)}...</p>
+  <p>${item.description}</p> <!-- Tady byl substring, teď je tu celý text -->
   <div class="rating">⭐ ${item.rating} / ${type==="hotel"?10:5}</div>
   ${type==="hotel"?`<div class="price">${item.price}</div>`:""}
   <a href="${item.link}" target="_blank">Otevřít</a>
