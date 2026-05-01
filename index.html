@@ -25,7 +25,7 @@ body.romantic{
 
 header{
   text-align:center;
-  padding:60px 20px 20px;
+  padding:40px 20px 10px;
 }
 
 header h1{
@@ -35,33 +35,59 @@ header h1{
   -webkit-text-fill-color:transparent;
 }
 
-header p{color:#6b7280}
+header p{color:#6b7280; margin-top: 5px;}
 body.romantic header p{color:#c7d2fe}
 
-.actions{text-align:center;margin:20px}
+.actions{
+  text-align:center;
+  margin: 15px 20px 25px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
 
 .btn{
   border:none;
-  padding:10px 16px;
+  padding:10px 18px;
   border-radius:999px;
   background:linear-gradient(135deg,#6366f1,#ec4899);
   color:white;
   cursor:pointer;
   font-weight:600;
-  margin:5px;
   box-shadow:0 6px 20px rgba(99,102,241,.3);
   transition:.2s;
+  display:inline-block;
+}
+
+.btn-success {
+  background:linear-gradient(135deg,#10b981,#047857);
+  box-shadow:0 6px 20px rgba(16,185,129,.3);
+}
+
+.btn-warning {
+  background:linear-gradient(135deg,#f59e0b,#d97706);
+  box-shadow:0 6px 20px rgba(245,158,11,.3);
+}
+
+.btn-danger {
+  background:linear-gradient(135deg,#ef4444,#b91c1c);
 }
 
 .btn:hover{transform:translateY(-2px) scale(1.03)}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-.container{max-width:1100px;margin:auto;padding:20px}
+.container{max-width:1100px;margin:auto;padding:0 20px 40px;}
 
 .city-title{
-  font-size:1.5rem;
+  font-size:1.8rem;
   margin-top:40px;
   color:#4f46e5;
+  border-bottom: 2px solid rgba(99,102,241,0.2);
+  padding-bottom: 5px;
 }
+
+body.romantic .city-title { border-bottom: 2px solid rgba(199,210,254,0.2); }
 
 /* 🧊 GLASS CARD */
 .card{
@@ -74,7 +100,6 @@ body.romantic header p{color:#c7d2fe}
   transition:.25s;
 }
 
-/* ✨ HOVER MAGIC */
 .card:hover{
   transform:rotateX(4deg) rotateY(-4deg) translateY(-8px);
   box-shadow:0 25px 50px rgba(236,72,153,.25);
@@ -84,7 +109,7 @@ body.romantic header p{color:#c7d2fe}
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
   gap:20px;
-  margin-top:10px;
+  margin-top:15px;
 }
 
 .tag{
@@ -102,7 +127,6 @@ body.romantic header p{color:#c7d2fe}
 .rating{font-size:.85rem;margin:5px 0}
 .price{color:#10b981;font-weight:600}
 
-/* 🔘 BUTTON */
 .card a{
   display:inline-block;
   margin-top:10px;
@@ -113,6 +137,7 @@ body.romantic header p{color:#c7d2fe}
   text-decoration:none;
   font-weight:600;
   box-shadow:0 6px 15px rgba(99,102,241,.3);
+  font-size: 0.9rem;
 }
 
 /* ❤️ LIKE */
@@ -123,12 +148,13 @@ body.romantic header p{color:#c7d2fe}
   border:none;
   background:white;
   border-radius:999px;
-  padding:5px 8px;
+  padding:6px 9px;
   cursor:pointer;
   z-index:20;
+  font-size: 1.1rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-/* ❤️ FLOAT */
 .heart{
   position:fixed;
   z-index:9999;
@@ -145,17 +171,63 @@ body.romantic header p{color:#c7d2fe}
 .map{margin-top:10px;border-radius:15px;overflow:hidden}
 iframe{width:100%;height:180px;border:0}
 
-/* 🎒 ITINERARY */
-.itinerary{
+/* 🎒 SECTIONS */
+.panel{
   margin-top:30px;
-  padding:20px;
+  padding:25px;
   border-radius:20px;
   background:rgba(255,255,255,.7);
   backdrop-filter:blur(10px);
   box-shadow:0 10px 30px rgba(0,0,0,.1);
 }
 
-body.romantic .itinerary{background:rgba(255,255,255,.08)}
+body.romantic .panel{background:rgba(255,255,255,.08)}
+
+/* PAST TRIPS */
+.past-trip {
+  background: rgba(255,255,255,0.4);
+  border-radius: 15px;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-left: 5px solid #ec4899;
+}
+body.romantic .past-trip { background: rgba(0,0,0,0.3); }
+
+/* 📸 GALLERY */
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+.photo-card {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  aspect-ratio: 1;
+}
+.photo-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.btn-delete-photo {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(255,0,0,0.8);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.hidden { display: none; }
 
 </style>
 </head>
@@ -167,19 +239,30 @@ body.romantic .itinerary{background:rgba(255,255,255,.08)}
 </header>
 
 <div class="actions">
-<button class="btn" onclick="renderCities()">Zobrazit vše</button>
-<button class="btn" onclick="generateItinerary()">🎒 Víkend</button>
+<button class="btn" onclick="renderCities()">🔍 Plánovat</button>
+<button class="btn" onclick="generateItinerary()">🎒 Aktuální Víkend</button>
+<button class="btn btn-success" onclick="renderPastTrips()">📸 Proběhlé výlety</button>
 <button class="btn" onclick="toggleRomantic()">🌙 Temný mód</button>
+<button class="btn btn-warning" onclick="document.getElementById('importJson').click()">📂 Import JSON</button>
+<button class="btn btn-warning" onclick="exportData()">💾 Export JSON</button>
+<input type="file" id="importJson" class="hidden" accept=".json" onchange="importData(event)">
+<input type="file" id="photoInput" class="hidden" accept="image/*" multiple onchange="handlePhotos(event)">
 </div>
 
-<div class="container">
-<div id="cities"></div>
-<div id="itinerary"></div>
+<div class="container" id="main-content">
+<!-- Zde se bude generovat obsah (Města, Víkend nebo Proběhlé výlety) -->
 </div>
 
 <script>
-let liked=new Set(JSON.parse(localStorage.getItem("likedPlaces")||"[]"));
+// --- STAV APLIKACE ---
+// likedPlaces drží ID aktuálně naklikaných míst.
+let liked = new Set(JSON.parse(localStorage.getItem("likedPlaces") || "[]"));
+// pastTrips je pole proběhlých výletů: { id, city, hotel, restaurant, photos: [] }
+let pastTrips = JSON.parse(localStorage.getItem("pastTrips") || "[]");
 
+let currentTripIdForPhoto = null; // Pomocná proměnná pro nahrávání fotek
+
+// --- DATA ---
 const data = {
     hotels: [
       {
@@ -285,93 +368,290 @@ const data = {
     ]
   };
 
-function toggleRomantic(){
-document.body.classList.toggle("romantic");
+// --- POMOCNÉ FUNKCE ---
+function saveState() {
+  localStorage.setItem("likedPlaces", JSON.stringify([...liked]));
+  try {
+      localStorage.setItem("pastTrips", JSON.stringify(pastTrips));
+  } catch (e) {
+      alert("⚠️ Paměť je plná! Exportujte si data jako JSON a promažte staré fotky.");
+  }
 }
+
+function toggleRomantic(){ document.body.classList.toggle("romantic"); }
 
 function spawnHeart(x,y){
   const h=document.createElement("div");
-  h.className="heart";
-  h.textContent="❤️";
-
-  h.style.left=x+"px";
-  h.style.top=y+"px";
-
-  h.style.position="fixed";
-  h.style.zIndex="9999";
-
+  h.className="heart"; h.textContent="❤️";
+  h.style.left=x+"px"; h.style.top=y+"px";
+  h.style.position="fixed"; h.style.zIndex="9999";
   document.body.appendChild(h);
   setTimeout(()=>h.remove(),1000);
 }
 
-function toggleLike(key,e){
+// Generování unikátního, dekódovatelného klíče
+function makeKey(type, city, name) {
+  return encodeURIComponent(JSON.stringify({type, city, name}));
+}
+
+function parseKey(key) {
+  return JSON.parse(decodeURIComponent(key));
+}
+
+function toggleLike(key, e){
   if(liked.has(key)) liked.delete(key);
   else liked.add(key);
 
-  localStorage.setItem("likedPlaces",JSON.stringify([...liked]));
+  saveState();
 
-  // stop bubbling
   if(e && e.stopPropagation) e.stopPropagation();
-
   const ev = e || window.event;
   spawnHeart(ev.clientX, ev.clientY);
-  renderCities();
+  
+  // Zjistíme, kde zrovna jsme a překreslíme
+  if(document.querySelector('.grid')) renderCities();
+  else generateItinerary();
 }
 
-function createCard(item,type){
-const key=type+item.name+item.city;
-
-return `
-<div class="card">
-<button class="btn-like" onclick="toggleLike('${key}',event)">${liked.has(key)?"❤️":"👍"}</button>
-<div class="tag ${type}">${type}</div>
-<h3>${item.name}</h3>
-<p>${item.description}</p>
-<div class="rating">⭐ ${item.rating} / ${type==="hotel"?10:5}</div>
-${type==="hotel"?`<div class="price">${item.price}</div>`:""}
-<a href="${item.link}" target="_blank">Otevřít</a>
-</div>`;
-}
-
+// --- 1. PLÁNOVÁNÍ (Zobrazit vše) ---
 function renderCities(){
-document.getElementById("itinerary").innerHTML="";
-const c=document.getElementById("cities");
-c.innerHTML="";
+  const container = document.getElementById("main-content");
+  container.innerHTML="";
 
-[...new Set([...data.hotels,...data.restaurants].map(i=>i.city))]
-.forEach(city=>{
-let html=`<div class="city-title">${city}</div>`;
-html+=`<div class="map"><iframe src="https://www.google.com/maps?q=${city}&output=embed"></iframe></div>`;
-html+=`<div class="grid">`;
+  let html = "";
+  [...new Set([...data.hotels,...data.restaurants].map(i=>i.city))]
+  .forEach(city=>{
+      html+=`<div class="city-title">${city}</div>`;
+      html+=`<div class="map"><iframe src="https://www.google.com/maps?q=${city}&output=embed"></iframe></div>`;
+      html+=`<div class="grid">`;
 
-data.hotels.filter(h=>h.city===city).forEach(h=>html+=createCard(h,"hotel"));
-data.restaurants.filter(r=>r.city===city).forEach(r=>html+=createCard(r,"restaurant"));
+      data.hotels.filter(h=>h.city===city).forEach(h=> {
+          const key = makeKey("hotel", h.city, h.name);
+          html += createCard(h, "hotel", key);
+      });
+      data.restaurants.filter(r=>r.city===city).forEach(r=> {
+          const key = makeKey("restaurant", r.city, r.name);
+          html += createCard(r, "restaurant", key);
+      });
 
-html+=`</div>`;
-c.innerHTML+=html;
-});
+      html+=`</div>`;
+  });
+  container.innerHTML = html;
 }
 
+function createCard(item, type, key){
+  return `
+  <div class="card">
+  <button class="btn-like" onclick="toggleLike('${key}',event)">${liked.has(key)?"❤️":"👍"}</button>
+  <div class="tag ${type}">${type}</div>
+  <h3>${item.name}</h3>
+  <p>${item.description.substring(0, 70)}...</p>
+  <div class="rating">⭐ ${item.rating} / ${type==="hotel"?10:5}</div>
+  ${type==="hotel"?`<div class="price">${item.price}</div>`:""}
+  <a href="${item.link}" target="_blank">Otevřít</a>
+  </div>`;
+}
+
+// --- 2. VÍKEND (Kontrola 1 hotel + 1 rest) ---
 function generateItinerary(){
-let selected=[...liked];
-if(selected.length===0){document.getElementById("itinerary").innerHTML="❤️ Nic vybrané";return}
+  const container = document.getElementById("main-content");
+  
+  if(liked.size === 0){
+      container.innerHTML="<div class='panel' style='text-align:center;'><h2>❤️ Zatím nic nevybráno</h2><p>Vyberte si místa v sekci Plánovat.</p></div>";
+      return;
+  }
 
-const encoded=encodeURIComponent(JSON.stringify(selected));
-const url=location.origin+location.pathname+"?likes="+encoded;
+  // Rozparsujeme vybrané položky
+  const selected = [...liked].map(k => parseKey(k));
+  const hotels = selected.filter(i => i.type === "hotel");
+  const rests = selected.filter(i => i.type === "restaurant");
 
-document.getElementById("cities").innerHTML="";
-document.getElementById("itinerary").innerHTML=`
-<div class="itinerary">
-<h2>🎒 Víkendový plán ❤️</h2>
-<p>Vybrali jste ${selected.length} míst</p>
-<button class="btn" onclick="navigator.clipboard.writeText('${url}')">💌 Sdílet plán</button>
-</div>`;
+  let html = `<div class="panel" style="text-align:center;">
+      <h2>🎒 Plán na aktuální víkend ❤️</h2>
+      <p>Máte vybráno: <b>${hotels.length}</b> hotelů a <b>${rests.length}</b> restaurací.</p>
+      <hr style="margin: 15px 0; border:0; border-top:1px solid #ccc; opacity:0.3;">
+  `;
+
+  // STRIKTNÍ PODMÍNKA
+  if(hotels.length === 1 && rests.length === 1) {
+      const h = hotels[0];
+      const r = rests[0];
+      
+      html += `<div style="text-align:left; max-width:400px; margin: 0 auto 20px;">
+          <p>🏨 <b>Hotel:</b> ${h.name} (${h.city})</p>
+          <p>🍽️ <b>Restaurace:</b> ${r.name} (${r.city})</p>
+      </div>`;
+
+      if(h.city !== r.city) {
+          html += `<p style="color:#f59e0b; margin-bottom:15px;">⚠️ Pozor, hotel a restaurace nejsou ve stejném městě!</p>`;
+      }
+
+      html += `<button class="btn btn-success" onclick="approveTrip()">✅ Zrealizovat výlet a přesunout do archivu</button>`;
+  } else {
+      html += `
+      <p style="color:#ef4444; font-weight:bold; margin: 15px 0;">
+          Abyste mohli výlet schválit, musíte vybrat PŘESNĚ JEDEN hotel a JEDNU restauraci!
+      </p>
+      <button class="btn" onclick="renderCities()">Vrátit se k výběru</button>
+      `;
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
 }
 
+function approveTrip() {
+  const selected = [...liked].map(k => parseKey(k));
+  const h = selected.find(i => i.type === "hotel");
+  const r = selected.find(i => i.type === "restaurant");
+
+  // Vytvoříme objekt proběhlého výletu
+  const newTrip = {
+      id: Date.now(),
+      city: h.city === r.city ? h.city : `${h.city} & ${r.city}`, // Pro případ různého města
+      hotel: h.name,
+      restaurant: r.name,
+      photos: []
+  };
+
+  pastTrips.push(newTrip);
+  liked.clear(); // Vyčistíme aktuální plánovač
+  saveState();
+  
+  spawnHeart(window.innerWidth/2, window.innerHeight/2);
+  renderPastTrips(); // Přepneme na archiv
+}
+
+// --- 3. PROBĚHLÉ VÝLETY (Seskupeno podle měst + fotky) ---
+function renderPastTrips() {
+  const container = document.getElementById("main-content");
+  
+  if(pastTrips.length === 0) {
+      container.innerHTML="<div class='panel' style='text-align:center;'><h2>📸 Žádné proběhlé výlety</h2><p>Naplánujte a odsouhlaste svůj první víkend!</p></div>";
+      return;
+  }
+
+  // Seskupíme podle měst
+  const tripsByCity = {};
+  pastTrips.forEach(trip => {
+      if(!tripsByCity[trip.city]) tripsByCity[trip.city] = [];
+      tripsByCity[trip.city].push(trip);
+  });
+
+  let html = `<div class="panel"><h2>📸 Naše proběhlé výlety</h2><p style="margin-bottom:20px; color:#6b7280;">Vzpomínky a fotky z našich dobrodružství.</p>`;
+
+  for (const [city, trips] of Object.entries(tripsByCity)) {
+      html += `<h3 style="color:#ec4899; margin-top:20px; border-bottom:1px solid #ec4899; padding-bottom:5px;">${city}</h3>`;
+      
+      trips.forEach(trip => {
+          html += `
+          <div class="past-trip">
+              <p>🏨 <b>Hotel:</b> ${trip.hotel}</p>
+              <p>🍽️ <b>Restaurace:</b> ${trip.restaurant}</p>
+              <button class="btn btn-warning" style="margin-top:10px; font-size:0.8rem; padding: 6px 12px;" onclick="triggerPhotoUpload(${trip.id})">📸 Přidat fotky</button>
+              <button class="btn btn-danger" style="margin-top:10px; font-size:0.8rem; padding: 6px 12px;" onclick="deleteTrip(${trip.id})">🗑️ Smazat výlet</button>
+              
+              <div class="gallery">
+                  ${trip.photos.map((src, pIndex) => `
+                      <div class="photo-card">
+                          <img src="${src}" alt="Fotka">
+                          <button class="btn-delete-photo" onclick="deletePhoto(${trip.id}, ${pIndex})">×</button>
+                      </div>
+                  `).join("")}
+              </div>
+          </div>
+          `;
+      });
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
+// --- FOTOGRAFIE ---
+function triggerPhotoUpload(tripId) {
+  currentTripIdForPhoto = tripId;
+  document.getElementById('photoInput').click();
+}
+
+function handlePhotos(event) {
+  const files = event.target.files;
+  if (!files.length || !currentTripIdForPhoto) return;
+
+  const trip = pastTrips.find(t => t.id === currentTripIdForPhoto);
+  if(!trip) return;
+
+  for(let file of files) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+          trip.photos.push(e.target.result);
+          saveState();
+          renderPastTrips(); // Refresh pohledu
+      };
+      reader.readAsDataURL(file);
+  }
+  // Vyčistit input pro další použití
+  event.target.value = ""; 
+}
+
+function deletePhoto(tripId, photoIndex) {
+  const trip = pastTrips.find(t => t.id === tripId);
+  if(trip) {
+      trip.photos.splice(photoIndex, 1);
+      saveState();
+      renderPastTrips();
+  }
+}
+
+function deleteTrip(tripId) {
+  if(confirm("Opravdu smazat tento výlet a všechny jeho fotky?")) {
+      pastTrips = pastTrips.filter(t => t.id !== tripId);
+      saveState();
+      renderPastTrips();
+  }
+}
+
+// --- EXPORT / IMPORT ---
+function exportData() {
+  const exportData = {
+      likedPlaces: [...liked],
+      pastTrips: pastTrips
+  };
+  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData));
+  const a = document.createElement('a');
+  a.href = dataStr;
+  a.download = "nase-vylety-komplet.json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+      try {
+          const imported = JSON.parse(e.target.result);
+          liked = new Set(imported.likedPlaces || []);
+          pastTrips = imported.pastTrips || [];
+          saveState();
+          
+          if(pastTrips.length > 0) renderPastTrips();
+          else renderCities();
+          
+          alert("Data úspěšně načtena! 🎉");
+      } catch(err) {
+          alert("Chyba při načítání souboru. Jde o správný JSON?");
+      }
+  };
+  reader.readAsText(file);
+}
+
+// Start
 renderCities();
 </script>
 
 </body>
 </html>
-
-
