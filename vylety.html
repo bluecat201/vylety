@@ -2,7 +2,7 @@
 <html lang="cs">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Naše výlety ❤️</title>
 
 <!-- PWA Manifest -->
@@ -17,6 +17,14 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", () => {
+        if (sessionStorage.getItem("isLogged") === "true") {
+            document.getElementById("login-overlay").style.display = "none";
+        }
+    });
+    </script>
 
     <div id="user-status-bar" style="position: fixed; top: 10px; right: 10px; z-index: 9999; display: flex; align-items: center; gap: 10px;">
     <script>

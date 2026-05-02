@@ -201,3 +201,11 @@ body.dark-mode .user-panel {
 #login-overlay ~ .user-panel {
   display: none;
 }
+
+body {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button, a {
+  touch-action: manipulation;
+}

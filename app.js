@@ -3,7 +3,7 @@
 // =========================================
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(err => console.error('PWA chyba:', err));
+      navigator.serviceWorker.register('./sw.js').catch(err => console.error('PWA chyba:', err));
   });
 }
 
@@ -316,3 +316,15 @@ function renderUserPanel() {
   `;
   document.body.appendChild(panel);
 }
+
+//=============================================
+// MOBILNÍ APKA
+//=============================================
+let deferredPrompt;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+
+  console.log("App lze nainstalovat 📲");
+});
