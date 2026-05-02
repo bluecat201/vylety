@@ -4,37 +4,61 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Náš Svět ❤️</title>
-
-<!-- PWA Manifest & Ikona pro mobily -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#6366f1">
-<link rel="apple-touch-icon" href="icon.png">
-
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 </head>
 <body class="hub-page">
 
-  <h1 class="hub-title">Náš Svět ❤️</h1>
-  <p class="hub-subtitle">Všechna naše společná dobrodružství a plány na jednom místě</p>
+  <!-- PŘIHLAŠOVACÍ OKNO -->
+  <div id="login-overlay">
+      <div class="login-box">
+          <h2 style="color: #ec4899; margin-bottom: 20px;">❤️ Náš svět</h2>
+          <input type="text" id="loginUser" class="login-input" placeholder="Jméno">
+          <input type="password" id="loginPass" class="login-input" placeholder="Heslo">
+          <button class="btn" style="width: 100%; margin-top: 15px;" onclick="doLogin()">Odemknout</button>
+      </div>
+  </div>
+
+
+  <div id="user-status-bar" style="position: fixed; top: 10px; right: 10px; z-index: 9999; display: flex; align-items: center; gap: 10px;">
+    <script>
+        const userName = sessionStorage.getItem("userName");
+        if(userName) {
+            document.write(`
+                <span style="font-size: 0.8rem; background: rgba(0,0,0,0.5); color: white; padding: 5px 10px; border-radius: 20px; backdrop-filter: blur(5px);">
+                    👤 ${userName}
+                </span>
+                <button onclick="logout()" style="background: #ef4444; color: white; border: none; padding: 5px 10px; border-radius: 20px; cursor: pointer; font-size: 0.8rem;">
+                    Odhlásit
+                </button>
+            `);
+        }
+    </script>
+</div>
+
+  <h1 class="hub-title fade-in">Náš Svět ❤️</h1>
+  
+  <!-- ODPOČET -->
+  <div class="countdown-container fade-in" style="animation-delay: 0.1s;">
+      <div class="countdown-title">⏳ Další dobrodružství za:</div>
+      <div id="countdown-timer" class="countdown-timer">Načítám...</div>
+  </div>
   
   <div class="menu-grid">
-    <a href="vylety.html" class="menu-item fade-in" style="animation-delay: 0.1s;">
+    <a href="vylety.html" class="menu-item fade-in" style="animation-delay: 0.2s;">
       <i>🌍</i>
       <h2>Naše Výlety</h2>
       <p>Plánování, itineráře a vzpomínky z našich cest.</p>
     </a>
-
-    <div class="menu-item fade-in" style="animation-delay: 0.2s; opacity: 0.6; cursor: default;">
-      <i>✨</i>
-      <h2>Naše Sny</h2>
-      <p>Místo pro naše budoucí plány a přání... (připravujeme)</p>
-    </div>
   </div>
 
-  <button class="btn fade-in" style="animation-delay: 0.3s;" onclick="toggleDarkMode()">🌙 Temný mód</button>
+  <button class="btn fade-in" style="animation-delay: 0.3s; margin-top: 40px;" onclick="toggleDarkMode()">🌙 Temný mód</button>
 
   <script src="app.js"></script>
-
 </body>
 </html>

@@ -3,33 +3,104 @@
 // =========================================
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-          .then(reg => console.log('PWA Service Worker registrován!', reg))
-          .catch(err => console.error('PWA chyba:', err));
+      navigator.serviceWorker.register('sw.js').catch(err => console.error('PWA chyba:', err));
   });
 }
 
 // =========================================
-// FIREBASE DATABÁZE (PŘÍPRAVA)
+// PŘIHLÁŠENÍ S ROLEMI
 // =========================================
-// Až si založíte projekt na Google Firebase, přepište tyto hodnoty:
+
+const users = {
+  "bluecat": { pass: "RGF2aWQyMDAy", role: "admin", name: "bluecat" },
+  "bastet": { pass: "R29GdWNrWW91cnNlbGYyNio=", role: "admin", name: "bastet" },
+  "payshock": { pass: "Q1EzMmc0XzY5", role: "steve", name: "PayShock" }
+};
+
+function checkAuth() {
+  if (sessionStorage.getItem("isLogged") === "true") {
+      const overlay = document.getElementById("login-overlay");
+      if(overlay) overlay.style.display = "none";
+      applyRoleRestrictions(); // Zapne/vypne tlačítka podle role
+      return true;
+  }
+  return false;
+}
+
+function doLogin() {
+  const u = document.getElementById("loginUser").value.toLowerCase();
+  const p = document.getElementById("loginPass").value;
+  
+  // Pomocná funkce, která "zašifruje" zadané heslo stejně, jako je uloženo nahoře
+  const encodedPass = btoa(p); 
+
+  if (users[u] && users[u].pass === encodedPass) {
+      sessionStorage.setItem("isLogged", "true");
+      sessionStorage.setItem("userRole", users[u].role);
+      sessionStorage.setItem("userName", users[u].name);
+      
+      document.getElementById("login-overlay").style.display = "none";
+      
+      // Speciální přivítání pro Steva
+      if (users[u].role === "steve") {
+          alert("Zdar Steve! Můžeš koukat, ale nic nám tu nerozbij xD");
+      } else {
+          alert(`Vítej zpět, ${users[u].name}! ❤️`);
+      }
+
+      loadState();
+      applyRoleRestrictions();
+  } else {
+      alert("Špatné jméno nebo heslo! 💔");
+  }
+}
+
+function logout() {
+  sessionStorage.clear();
+  location.reload();
+}
+
+// Funkce, která skryje administrátorská tlačítka pro diváky a Steva
+function applyRoleRestrictions() {
+  const role = sessionStorage.getItem("userRole");
+  
+  // Pokud je to viewer nebo steve, přidáme do body speciální třídu
+  if (role === "viewer" || role === "steve") {
+      document.body.classList.add("readonly-mode");
+  } else {
+      document.body.classList.remove("readonly-mode");
+  }
+}
+
+// Ochrana před zavoláním funkce přes konzoli
+function requireAdmin(actionFunction) {
+  if (sessionStorage.getItem("userRole") !== "admin") {
+      alert("Na tohle nemáš práva! (Dívám se na tebe, Steve 👀)");
+      return;
+  }
+  actionFunction();
+}
+
+// =========================================
+// FIREBASE DATABÁZE (REAL-TIME SYNC)
+// =========================================
+// Až si založíte Firebase (Firestore), vložte sem své klíče:
 const firebaseConfig = {
-  apiKey: "VLOZ_SVUJ_API_KEY_ZDE",
-  authDomain: "tvuj-projekt.firebaseapp.com",
-  projectId: "tvuj-projekt",
+  apiKey: "AIzaSyDlfyiP--z5yc35ovXxQ57zbVWCYTjsaVk",
+  authDomain: "cat-goddes.firebaseapp.com",
+  projectId: "cat-goddes",
 };
 
 let db = null;
 try {
-  if (typeof firebase !== 'undefined' && firebaseConfig.apiKey !== "VLOZ_SVUJ_API_KEY_ZDE") {
+  if (typeof firebase !== 'undefined' && firebaseConfig.apiKey !== "AIzaSyDlfyiP--z5yc35ovXxQ57zbVWCYTjsaVk") {
       firebase.initializeApp(firebaseConfig);
       db = firebase.firestore();
-      console.log("Firebase aktivní!");
   }
-} catch (e) { console.log("Firebase zatím není nastaven, používám lokální úložiště."); }
+} catch (e) { console.log("Firebase není připojen, jedeme lokálně."); }
 
 // =========================================
-// DATA MÍST
+// GLOBÁLNÍ DATA A STAV
 // =========================================
 const data = {
     hotels: [
@@ -135,64 +206,113 @@ const data = {
       }
     ]
   };
-// =========================================
-// GLOBÁLNÍ STAV A FUNKCE
-// =========================================
+
 let liked = new Set();
 let pastTrips = [];
+let nextTripDate = null; // NOVÉ: Datum dalšího výletu
 
-// Hlavní funkce pro ukládání (podporuje LocalStorage i Firebase)
 function saveState() {
-  const state = { liked: [...liked], pastTrips };
-  
-  // 1. Vždy uložíme lokálně pro jistotu a rychlost
+  const state = { liked: [...liked], pastTrips, nextTripDate };
   localStorage.setItem("travelApp", JSON.stringify(state));
-
-  // 2. Pokud je nastaven Firebase, pošleme to i tam
-  if (db) {
-      db.collection("sync").doc("sharedData").set(state)
-          .then(() => console.log("Uloženo do cloudu"))
-          .catch(err => console.error("Chyba cloudu", err));
-  }
+  if (db) { db.collection("sync").doc("sharedData").set(state); }
+  updateCountdownUI();
 }
 
-// Funkce pro načtení
 function loadState() {
-  // 1. Zkusíme načíst z Firebase (pokud je připojen)
   if (db) {
+      // Magie reálného času: Jakmile někdo něco změní, překreslí se to i vám
       db.collection("sync").doc("sharedData").onSnapshot((doc) => {
           if (doc.exists) {
-              const data = doc.data();
-              liked = new Set(data.liked || []);
-              pastTrips = data.pastTrips || [];
-              // Pokud jsme zrovna na stránce výletů, překreslíme ji
-              if(typeof renderCities === "function" && document.getElementById("main-content")) {
-                 // Necháme aktivní pohled, jaký je
-              }
+              const d = doc.data();
+              liked = new Set(d.liked || []); pastTrips = d.pastTrips || []; nextTripDate = d.nextTripDate || null;
+              refreshCurrentView(); updateCountdownUI();
           }
       });
-  } 
-  
-  // 2. Lokální záloha (proběhne vždy okamžitě)
-  const saved = localStorage.getItem("travelApp");
-  if(saved){
-      const parsed = JSON.parse(saved);
-      liked = new Set(parsed.liked || []);
-      pastTrips = parsed.pastTrips || [];
+  } else {
+      const saved = localStorage.getItem("travelApp");
+      if(saved) {
+          const p = JSON.parse(saved);
+          liked = new Set(p.liked || []); pastTrips = p.pastTrips || []; nextTripDate = p.nextTripDate || null;
+      }
+      refreshCurrentView(); updateCountdownUI();
   }
 }
 
-// Inicializace temného módu
-function initTheme() {
-  if (localStorage.getItem("theme") === "dark") { document.body.classList.add("dark-mode"); }
+function refreshCurrentView() {
+  if(typeof renderCities === "function" && document.getElementById("main-content")) {
+      // Pokusíme se zjistit, co zrovna uživatel viděl, a překreslit to
+      if (document.querySelector('.grid')) renderCities();
+      else if (document.querySelector('.past-trip')) renderPastTrips();
+      else generateItinerary();
+  }
 }
 
+// =========================================
+// ODPOČET (COUNTDOWN) LOGIKA
+// =========================================
+function updateCountdownUI() {
+  const cdTimer = document.getElementById("countdown-timer");
+  if (!cdTimer) return; // Jsme na stránce, kde odpočet není
+
+  if (!nextTripDate) { cdTimer.innerHTML = "Zatím žádný výlet v plánu 😔"; return; }
+
+  const destDate = new Date(nextTripDate).getTime();
+  
+  // Zastavíme starý interval, pokud běží, a spustíme nový
+  if(window.countdownInterval) clearInterval(window.countdownInterval);
+  
+  window.countdownInterval = setInterval(() => {
+      const now = new Date().getTime();
+      const distance = destDate - now;
+
+      if (distance < 0) {
+          clearInterval(window.countdownInterval);
+          cdTimer.innerHTML = "🎉 Užijte si výlet! ❤️";
+          return;
+      }
+
+      const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+      cdTimer.innerHTML = `${days} dní, ${hours} hod, ${minutes} min, ${seconds} s`;
+  }, 1000);
+}
+
+// =========================================
+// TEMNÝ MÓD
+// =========================================
+function initTheme() { if (localStorage.getItem("theme") === "dark") document.body.classList.add("dark-mode"); }
 function toggleDarkMode() {
   document.body.classList.toggle("dark-mode");
   localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
 }
 
+// Upravená inicializace po načtení dokumentu
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
-  loadState();
+  if (checkAuth()) { 
+    loadState(); 
+    renderUserPanel(); // Zobrazí jméno a logout tlačítko
+  }
 });
+
+// Funkce pro zobrazení panelu uživatele
+function renderUserPanel() {
+  const name = sessionStorage.getItem("userName");
+  if (!name) return;
+
+  // Pokud už panel existuje, nejdřív ho smažeme
+  const oldPanel = document.getElementById("user-status-panel");
+  if (oldPanel) oldPanel.remove();
+
+  const panel = document.createElement("div");
+  panel.id = "user-status-panel";
+  panel.className = "user-panel";
+  panel.innerHTML = `
+    <span>👤 <b>${name}</b></span>
+    <button onclick="logout()" class="btn-logout">Odhlásit</button>
+  `;
+  document.body.appendChild(panel);
+}
