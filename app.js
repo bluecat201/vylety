@@ -1,8 +1,36 @@
-// --- GLOBÁLNÍ STAV APLIKACE ---
-let liked = new Set(JSON.parse(localStorage.getItem("likedPlaces") || "[]"));
-let pastTrips = JSON.parse(localStorage.getItem("pastTrips") || "[]");
+// =========================================
+// PWA & SERVICE WORKER
+// =========================================
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('PWA Service Worker registrován!', reg))
+          .catch(err => console.error('PWA chyba:', err));
+  });
+}
 
-// --- SDÍLENÁ DATA ---
+// =========================================
+// FIREBASE DATABÁZE (PŘÍPRAVA)
+// =========================================
+// Až si založíte projekt na Google Firebase, přepište tyto hodnoty:
+const firebaseConfig = {
+  apiKey: "VLOZ_SVUJ_API_KEY_ZDE",
+  authDomain: "tvuj-projekt.firebaseapp.com",
+  projectId: "tvuj-projekt",
+};
+
+let db = null;
+try {
+  if (typeof firebase !== 'undefined' && firebaseConfig.apiKey !== "VLOZ_SVUJ_API_KEY_ZDE") {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+      console.log("Firebase aktivní!");
+  }
+} catch (e) { console.log("Firebase zatím není nastaven, používám lokální úložiště."); }
+
+// =========================================
+// DATA MÍST
+// =========================================
 const data = {
     hotels: [
       {
@@ -107,33 +135,64 @@ const data = {
       }
     ]
   };
+// =========================================
+// GLOBÁLNÍ STAV A FUNKCE
+// =========================================
+let liked = new Set();
+let pastTrips = [];
 
-// --- FUNKCE PRO UKLÁDÁNÍ DAT ---
+// Hlavní funkce pro ukládání (podporuje LocalStorage i Firebase)
 function saveState() {
-    localStorage.setItem("likedPlaces", JSON.stringify([...liked]));
-    try {
-        localStorage.setItem("pastTrips", JSON.stringify(pastTrips));
-    } catch (e) {
-        alert("⚠️ Paměť je plná! Exportujte si data jako JSON a promažte staré fotky.");
-    }
+  const state = { liked: [...liked], pastTrips };
+  
+  // 1. Vždy uložíme lokálně pro jistotu a rychlost
+  localStorage.setItem("travelApp", JSON.stringify(state));
+
+  // 2. Pokud je nastaven Firebase, pošleme to i tam
+  if (db) {
+      db.collection("sync").doc("sharedData").set(state)
+          .then(() => console.log("Uloženo do cloudu"))
+          .catch(err => console.error("Chyba cloudu", err));
+  }
 }
 
-// --- GLOBÁLNÍ TEMNÝ MÓD ---
+// Funkce pro načtení
+function loadState() {
+  // 1. Zkusíme načíst z Firebase (pokud je připojen)
+  if (db) {
+      db.collection("sync").doc("sharedData").onSnapshot((doc) => {
+          if (doc.exists) {
+              const data = doc.data();
+              liked = new Set(data.liked || []);
+              pastTrips = data.pastTrips || [];
+              // Pokud jsme zrovna na stránce výletů, překreslíme ji
+              if(typeof renderCities === "function" && document.getElementById("main-content")) {
+                 // Necháme aktivní pohled, jaký je
+              }
+          }
+      });
+  } 
+  
+  // 2. Lokální záloha (proběhne vždy okamžitě)
+  const saved = localStorage.getItem("travelApp");
+  if(saved){
+      const parsed = JSON.parse(saved);
+      liked = new Set(parsed.liked || []);
+      pastTrips = parsed.pastTrips || [];
+  }
+}
+
+// Inicializace temného módu
 function initTheme() {
-    // Zkontroluje, zda je v paměti uložen temný mód
-    if (localStorage.getItem("theme") === "dark") {
-        document.body.classList.add("dark-mode");
-    }
+  if (localStorage.getItem("theme") === "dark") { document.body.classList.add("dark-mode"); }
 }
 
 function toggleDarkMode() {
-    document.body.classList.toggle("dark-mode");
-    
-    if (document.body.classList.contains("dark-mode")) {
-        localStorage.setItem("theme", "dark");
-    } else {
-        localStorage.setItem("theme", "light");
-    }
+  document.body.classList.toggle("dark-mode");
+  localStorage.setItem("theme", document.body.classList.contains("dark-mode") ? "dark" : "light");
 }
 
-document.addEventListener("DOMContentLoaded", initTheme);
+document.addEventListener("DOMContentLoaded", () => {
+  initTheme();
+  loadState();
+});

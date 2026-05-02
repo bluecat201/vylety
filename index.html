@@ -4,8 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Náš Svět ❤️</title>
+
+<!-- PWA Manifest & Ikona pro mobily -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6366f1">
+<link rel="apple-touch-icon" href="icon.png">
+
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
-<!-- NAPOJENÍ STYLŮ -->
 <link rel="stylesheet" href="styles.css">
 </head>
 <body class="hub-page">
@@ -14,20 +19,20 @@
   <p class="hub-subtitle">Všechna naše společná dobrodružství a plány na jednom místě</p>
   
   <div class="menu-grid">
-    <a href="vylety.html" class="menu-item">
+    <a href="vylety.html" class="menu-item fade-in" style="animation-delay: 0.1s;">
       <i>🌍</i>
       <h2>Naše Výlety</h2>
       <p>Plánování, itineráře a vzpomínky z našich cest.</p>
     </a>
 
-    <div class="menu-item" style="opacity: 0.6; cursor: default;">
+    <div class="menu-item fade-in" style="animation-delay: 0.2s; opacity: 0.6; cursor: default;">
       <i>✨</i>
       <h2>Naše Sny</h2>
       <p>Místo pro naše budoucí plány a přání... (připravujeme)</p>
     </div>
   </div>
 
-  <button class="btn" onclick="toggleDarkMode()">🌙 Temný mód</button>
+  <button class="btn fade-in" style="animation-delay: 0.3s;" onclick="toggleDarkMode()">🌙 Temný mód</button>
 
   <script src="app.js"></script>
 

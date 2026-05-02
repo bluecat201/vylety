@@ -4,9 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Naše výlety ❤️</title>
+
+<!-- PWA Manifest -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6366f1">
+
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-<!-- NAPOJENÍ STYLŮ -->
 <link rel="stylesheet" href="styles.css">
+
+<!-- Firebase App & Firestore (v9 compat) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
@@ -16,7 +24,7 @@
 </header>
 
 <div class="actions">
-<a href="index.html" class="btn" style="background: #4b5563; box-shadow: 0 6px 20px rgba(75,85,99,.3);">⬅ Zpět na rozcestí</a>
+<a href="index.html" class="btn" style="background: #4b5563;">⬅ Zpět na rozcestí</a>
 <button class="btn" onclick="renderCities()">🔍 Plánovat</button>
 <button class="btn" onclick="generateItinerary()">🎒 Aktuální Víkend</button>
 <button class="btn btn-success" onclick="renderPastTrips()">📸 Proběhlé výlety</button>
@@ -27,9 +35,8 @@
 <input type="file" id="photoInput" class="hidden" accept="image/*" multiple onchange="handlePhotos(event)">
 </div>
 
-<div class="container" id="main-content"></div>
+<div class="container fade-in" id="main-content"></div>
 
-<!-- PŘIPOJENÍ GLOBÁLNÍCH DAT A FUNKCÍ -->
 <script src="app.js"></script>
 
 <script>
@@ -57,11 +64,15 @@ function toggleLike(key, e){
 
 function renderCities(){
   const container = document.getElementById("main-content");
-  container.innerHTML="";
+  // Přidání animace znovunačtením třídy
+  container.className = "container"; 
+  void container.offsetWidth; 
+  container.classList.add("fade-in");
+
   let html = "";
   [...new Set([...data.hotels,...data.restaurants].map(i=>i.city))].forEach(city=>{
       html+=`<div class="city-title">${city}</div>`;
-      html+=`<div class="map"><iframe src="https://www.google.com/maps?q=${city}&output=embed"></iframe></div>`;
+      html+=`<div class="map"><iframe src="https://www.google.com/maps?q=${city}&output=embed" loading="lazy"></iframe></div>`;
       html+=`<div class="grid">`;
       data.hotels.filter(h=>h.city===city).forEach(h=> html += createCard(h, "hotel", makeKey("hotel", h.city, h.name)));
       data.restaurants.filter(r=>r.city===city).forEach(r=> html += createCard(r, "restaurant", makeKey("restaurant", r.city, r.name)));
@@ -85,9 +96,10 @@ function createCard(item, type, key){
 
 function generateItinerary(){
   const container = document.getElementById("main-content");
+  container.className = "container"; void container.offsetWidth; container.classList.add("fade-in");
   
   if(liked.size === 0){ 
-      container.innerHTML="<div class='panel' style='text-align:center;'><h2>❤️ Zatím nic nevybráno</h2><p>Vyberte si místa v sekci Plánovat.</p></div>"; 
+      container.innerHTML="<div class='panel' style='text-align:center;'><h2>❤️ Zatím nic nevybráno</h2></div>"; 
       return; 
   }
 
@@ -97,12 +109,10 @@ function generateItinerary(){
 
   let html = `<div class="panel" style="text-align:center;">
       <h2>🎒 Plán na aktuální víkend ❤️</h2>
-      <p>Máte vybráno: <b>${hotels.length}</b> hotelů a <b>${rests.length}</b> restaurací.</p>
-      <hr style="margin: 15px 0; border:0; border-top:1px solid #ccc; opacity:0.3;">`;
+      <hr style="margin: 15px 0; opacity:0.3;">`;
 
   if(hotels.length === 1 && rests.length === 1) {
-      const h = hotels[0];
-      const r = rests[0];
+      const h = hotels[0]; const r = rests[0];
       const isSameCity = h.city === r.city;
 
       html += `<div style="text-align:left; max-width:400px; margin: 0 auto 20px;">
@@ -110,25 +120,17 @@ function generateItinerary(){
           <p>🍽️ <b>Restaurace:</b> ${r.name} (${r.city})</p>
       </div>`;
 
-      if(!isSameCity) {
-          html += `
+      if(!isSameCity) html += `
           <div style="background: #fffbeb; border: 1px solid #f59e0b; padding: 15px; border-radius: 15px; margin-bottom: 20px; color: #92400e;">
               ⚠️ <b>Pozor:</b> Vybraná místa nejsou ve stejném městě! <br> 
               Z ${h.city} do ${r.city} to může být kus cesty.
           </div>`;
-      } else {
-          html += `<p style="color:#10b981; margin-bottom:15px;">✨ Skvělá volba! Obě místa jsou v destinaci ${h.city}.</p>`;
-      }
+      else html += `<p style="color:#10b981; margin-bottom:15px;">✨ Skvělá volba!</p>`;
 
-      html += `<button class="btn btn-success" onclick="approveTrip()">✅ Zrealizovat výlet a přesunout do archivu</button>`;
+      html += `<button class="btn btn-success" onclick="approveTrip()">✅ Zrealizovat výlet a archivovat</button>`;
   } else {
-      html += `
-      <p style="color:#ef4444; font-weight:bold; margin: 15px 0;">
-          Pro schválení výletu musíš vybrat přesně 1 hotel a 1 restauraci.
-      </p>
-      <button class="btn" onclick="renderCities()">Vrátit se k výběru</button>`;
+      html += `<p style="color:#ef4444; font-weight:bold; margin: 15px 0;">Vyberte přesně 1 hotel a 1 restauraci.</p><button class="btn" onclick="renderCities()">Vrátit se</button>`;
   }
-
   container.innerHTML = html + `</div>`;
 }
 
@@ -137,33 +139,44 @@ function approveTrip() {
   const h = selected.find(i => i.type === "hotel");
   const r = selected.find(i => i.type === "restaurant");
 
-  pastTrips.push({ id: Date.now(), city: h.city === r.city ? h.city : `${h.city} & ${r.city}`, hotel: h.name, restaurant: r.name, photos: [] });
-  liked.clear();
-  saveState();
-  spawnHeart(window.innerWidth/2, window.innerHeight/2);
-  renderPastTrips();
+  pastTrips.unshift({ id: Date.now(), city: h.city === r.city ? h.city : `${h.city} & ${r.city}`, hotel: h.name, restaurant: r.name, photos: [] });
+  liked.clear(); saveState(); spawnHeart(window.innerWidth/2, window.innerHeight/2); renderPastTrips();
+}
+
+// --- DRAG & DROP LOGIKA ---
+function allowDrop(ev) { ev.preventDefault(); ev.currentTarget.classList.add("drag-over"); }
+function leaveDrop(ev) { ev.currentTarget.classList.remove("drag-over"); }
+function drop(ev, tripId) {
+  ev.preventDefault();
+  ev.currentTarget.classList.remove("drag-over");
+  if (ev.dataTransfer.files && ev.dataTransfer.files.length > 0) {
+      currentTripIdForPhoto = tripId;
+      processFiles(ev.dataTransfer.files);
+  }
 }
 
 function renderPastTrips() {
   const container = document.getElementById("main-content");
+  container.className = "container"; void container.offsetWidth; container.classList.add("fade-in");
+  
   if(pastTrips.length === 0) { container.innerHTML="<div class='panel' style='text-align:center;'><h2>📸 Žádné proběhlé výlety</h2></div>"; return; }
 
   const tripsByCity = {};
   pastTrips.forEach(t => { if(!tripsByCity[t.city]) tripsByCity[t.city] = []; tripsByCity[t.city].push(t); });
 
-  let html = `<div class="panel"><h2>📸 Naše proběhlé výlety</h2>`;
+  let html = `<div class="panel"><h2>📸 Naše proběhlé výlety</h2><p style="font-size:0.8rem; color:#6b7280; margin-bottom:15px;">Tip: Fotky můžete nahrát přes tlačítko, nebo je jednoduše přetáhnout myší přímo do rámečku výletu!</p>`;
   for (const [city, trips] of Object.entries(tripsByCity)) {
       html += `<h3 style="color:#ec4899; margin-top:20px; border-bottom:1px solid #ec4899; padding-bottom:5px;">${city}</h3>`;
       trips.forEach(trip => {
-          html += `<div class="past-trip">
+          html += `<div class="past-trip" ondrop="drop(event, ${trip.id})" ondragover="allowDrop(event)" ondragleave="leaveDrop(event)">
               <p>🏨 <b>Hotel:</b> ${trip.hotel}</p>
               <p>🍽️ <b>Restaurace:</b> ${trip.restaurant}</p>
               <button class="btn btn-warning" style="margin-top:10px; font-size:0.8rem; padding: 6px 12px;" onclick="triggerPhotoUpload(${trip.id})">📸 Přidat fotky</button>
               <button class="btn btn-danger" style="margin-top:10px; font-size:0.8rem; padding: 6px 12px;" onclick="deleteTrip(${trip.id})">🗑️ Smazat výlet</button>
               <div class="gallery">
                   ${trip.photos.map((src, pIndex) => `
-                      <div class="photo-card">
-                          <img src="${src}" alt="Fotka">
+                      <div class="photo-card fade-in">
+                          <img src="${src}" alt="Fotka" loading="lazy">
                           <button class="btn-delete-photo" onclick="deletePhoto(${trip.id}, ${pIndex})">×</button>
                       </div>`).join("")}
               </div>
@@ -174,25 +187,29 @@ function renderPastTrips() {
 }
 
 function triggerPhotoUpload(id) { currentTripIdForPhoto = id; document.getElementById('photoInput').click(); }
-function handlePhotos(event) {
-  const files = event.target.files;
+
+function handlePhotos(event) { processFiles(event.target.files); event.target.value = ""; }
+
+function processFiles(files) {
   if (!files.length || !currentTripIdForPhoto) return;
   const trip = pastTrips.find(t => t.id === currentTripIdForPhoto);
-  for(let file of files) {
+  
+  // Zpracování každého souboru
+  Array.from(files).forEach(file => {
+      if (!file.type.startsWith('image/')) return; // Zabrání nahrátí PDF apod.
       const reader = new FileReader();
       reader.onload = (e) => { trip.photos.push(e.target.result); saveState(); renderPastTrips(); };
       reader.readAsDataURL(file);
-  }
-  event.target.value = ""; 
+  });
 }
+
 function deletePhoto(tripId, photoIndex) { const trip = pastTrips.find(t => t.id === tripId); if(trip) { trip.photos.splice(photoIndex, 1); saveState(); renderPastTrips(); } }
-function deleteTrip(tripId) { if(confirm("Opravdu smazat tento výlet a všechny jeho fotky?")) { pastTrips = pastTrips.filter(t => t.id !== tripId); saveState(); renderPastTrips(); } }
+function deleteTrip(tripId) { if(confirm("Opravdu smazat?")) { pastTrips = pastTrips.filter(t => t.id !== tripId); saveState(); renderPastTrips(); } }
 
 function exportData() {
   const exportData = { likedPlaces: [...liked], pastTrips: pastTrips };
-  const a = document.createElement('a');
-  a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData));
-  a.download = "nase-vylety-komplet.json"; document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData));
+  a.download = "nase-vylety.json"; document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 function importData(event) {
   const file = event.target.files[0]; if(!file) return;
@@ -203,12 +220,13 @@ function importData(event) {
           liked = new Set(imported.likedPlaces || []); pastTrips = imported.pastTrips || []; saveState();
           if(pastTrips.length > 0) renderPastTrips(); else renderCities();
           alert("Data úspěšně načtena! 🎉");
-      } catch(err) { alert("Chyba při načítání souboru. Jde o správný JSON?"); }
+      } catch(err) { alert("Chyba při načítání."); }
   };
   reader.readAsText(file);
 }
 
-renderCities();
+// Zpoždění pro bezpečné načtení z Firebase, pokud existuje
+setTimeout(() => renderCities(), 100);
 </script>
 </body>
 </html>
