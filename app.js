@@ -118,24 +118,22 @@ function saveState() {
     }
 }
 
-// --- GLOBÁLNÍ TMAVÝ REŽIM (ROMANTIC MODE) ---
+// --- GLOBÁLNÍ TEMNÝ MÓD ---
 function initTheme() {
-    // Zkontroluje, zda je v paměti uložen romantický režim
-    if (localStorage.getItem("theme") === "romantic") {
-        document.body.classList.add("romantic");
+    // Zkontroluje, zda je v paměti uložen temný mód
+    if (localStorage.getItem("theme") === "dark") {
+        document.body.classList.add("dark-mode");
     }
 }
 
-function toggleRomantic() {
-    document.body.classList.toggle("romantic");
+function toggleDarkMode() {
+    document.body.classList.toggle("dark-mode");
     
-    // Uloží aktuální volbu, aby si ji prohlížeč pamatoval i po překliknutí na jinou stránku
-    if (document.body.classList.contains("romantic")) {
-        localStorage.setItem("theme", "romantic");
+    if (document.body.classList.contains("dark-mode")) {
+        localStorage.setItem("theme", "dark");
     } else {
         localStorage.setItem("theme", "light");
     }
 }
 
-// Spustí kontrolu motivu ihned po načtení jakékoliv stránky
 document.addEventListener("DOMContentLoaded", initTheme);

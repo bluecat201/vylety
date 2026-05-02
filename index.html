@@ -5,102 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Náš Svět ❤️</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
-
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #eef2ff, #fdf2f8);
-    min-height: 100vh;
-    color: #1f2937;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 20px;
-    transition: background 0.5s, color 0.5s;
-  }
-  
-  /* 🌙 ROMANTIC MODE GLOBÁLNĚ */
-  body.romantic{
-    background: radial-gradient(circle at top, #1e1b4b, #0f172a);
-    color: #f9fafb;
-  }
-
-  .hub-title {
-    font-family: 'Dancing Script', cursive;
-    font-size: 4.5rem;
-    margin-bottom: 10px;
-    background: linear-gradient(90deg, #6366f1, #ec4899);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  .hub-subtitle {
-    font-size: 1.2rem;
-    color: #6b7280;
-    margin-bottom: 50px;
-  }
-  body.romantic .hub-subtitle { color: #c7d2fe; }
-
-  .menu-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 30px;
-    max-width: 900px;
-    width: 100%;
-  }
-
-  .menu-item {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(15px);
-    padding: 40px;
-    border-radius: 30px;
-    cursor: pointer;
-    transition: 0.3s;
-    text-decoration: none;
-    color: inherit;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-    border: 2px solid transparent;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  body.romantic .menu-item {
-    background: rgba(0, 0, 0, 0.3);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-  }
-
-  .menu-item:hover {
-    transform: translateY(-10px);
-    border-color: #ec4899;
-    box-shadow: 0 20px 40px rgba(236, 72, 153, 0.2);
-  }
-
-  .menu-item i { font-size: 3.5rem; margin-bottom: 20px; }
-  .menu-item h2 { font-size: 1.8rem; margin-bottom: 10px; color: #4f46e5; }
-  body.romantic .menu-item h2 { color: #818cf8; }
-  .menu-item p { font-size: 0.95rem; opacity: 0.8; }
-
-  /* Styly pro tlačítko */
-  .btn {
-    margin-top: 40px;
-    border: none;
-    padding: 10px 18px;
-    border-radius: 999px;
-    background: linear-gradient(135deg, #6366f1, #ec4899);
-    color: white;
-    cursor: pointer;
-    font-weight: 600;
-    box-shadow: 0 6px 20px rgba(99,102,241,.3);
-    transition: .2s;
-  }
-  .btn:hover { transform: translateY(-2px) scale(1.05); }
-</style>
+<!-- NAPOJENÍ STYLŮ -->
+<link rel="stylesheet" href="styles.css">
 </head>
-<body>
+<body class="hub-page">
 
   <h1 class="hub-title">Náš Svět ❤️</h1>
   <p class="hub-subtitle">Všechna naše společná dobrodružství a plány na jednom místě</p>
@@ -114,14 +22,13 @@
 
     <div class="menu-item" style="opacity: 0.6; cursor: default;">
       <i>✨</i>
-      <h2>TBA</h2>
-      <p>TBA</p>
+      <h2>Naše Sny</h2>
+      <p>Místo pro naše budoucí plány a přání... (připravujeme)</p>
     </div>
   </div>
 
-  <button class="btn" onclick="toggleRomantic()">🌙 Přepnout tmavý mód</button>
+  <button class="btn" onclick="toggleDarkMode()">🌙 Temný mód</button>
 
-  <!-- PŘIPOJENÍ GLOBÁLNÍCH DAT A FUNKCÍ -->
   <script src="app.js"></script>
 
 </body>

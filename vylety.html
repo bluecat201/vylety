@@ -5,47 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Naše výlety ❤️</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
-
-<style>
-/* ... (ZDE VLOŽTE ZCELA STEJNÝ CSS BLOK JAKO V PŘEDCHOZÍ VERZI VYLETU) ... */
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Poppins',sans-serif; background:linear-gradient(135deg,#eef2ff,#fdf2f8); min-height:100vh; color:#1f2937; overflow-x:hidden; transition: 0.5s;}
-body.romantic{background:radial-gradient(circle at top,#1e1b4b,#0f172a); color:#f9fafb;}
-header{text-align:center; padding:40px 20px 10px;}
-header h1{font-size:3rem; background:linear-gradient(90deg,#6366f1,#ec4899); -webkit-background-clip:text; -webkit-text-fill-color:transparent;}
-header p{color:#6b7280; margin-top: 5px;}
-body.romantic header p{color:#c7d2fe}
-.actions{text-align:center; margin: 15px 20px 25px; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px;}
-.btn{border:none; padding:10px 18px; border-radius:999px; background:linear-gradient(135deg,#6366f1,#ec4899); color:white; cursor:pointer; font-weight:600; box-shadow:0 6px 20px rgba(99,102,241,.3); transition:.2s; display:inline-block; text-decoration:none;}
-.btn-success {background:linear-gradient(135deg,#10b981,#047857); box-shadow:0 6px 20px rgba(16,185,129,.3);}
-.btn-warning {background:linear-gradient(135deg,#f59e0b,#d97706); box-shadow:0 6px 20px rgba(245,158,11,.3);}
-.btn-danger {background:linear-gradient(135deg,#ef4444,#b91c1c);}
-.btn:hover{transform:translateY(-2px) scale(1.03)}
-.container{max-width:1100px;margin:auto;padding:0 20px 40px;}
-.city-title{font-size:1.8rem; margin-top:40px; color:#4f46e5; border-bottom: 2px solid rgba(99,102,241,0.2); padding-bottom: 5px;}
-body.romantic .city-title { border-bottom: 2px solid rgba(199,210,254,0.2); }
-.card{background:rgba(255,255,255,.6); backdrop-filter:blur(12px); border-radius:20px; padding:18px; position:relative; box-shadow:0 10px 30px rgba(0,0,0,.08); transition:.25s; display: flex; flex-direction: column;}
-.card p { flex-grow: 1; font-size: 0.9rem; margin: 10px 0; }
-.card:hover{transform:rotateX(4deg) rotateY(-4deg) translateY(-8px); box-shadow:0 25px 50px rgba(236,72,153,.25);}
-.grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:20px; margin-top:15px;}
-.tag{font-size:.7rem; padding:4px 8px; border-radius:999px; color:white; display:inline-block; margin-bottom:6px;}
-.hotel{background:#6366f1} .restaurant{background:#ec4899}
-.rating{font-size:.85rem;margin:5px 0} .price{color:#10b981;font-weight:600}
-.card a{display:inline-block; margin-top:10px; padding:10px 14px; border-radius:999px; background:linear-gradient(135deg,#6366f1,#ec4899); color:white; text-decoration:none; font-weight:600; box-shadow:0 6px 15px rgba(99,102,241,.3); font-size: 0.9rem; text-align: center;}
-.btn-like{position:absolute; top:10px; right:10px; border:none; background:white; border-radius:999px; padding:6px 9px; cursor:pointer; z-index:20; font-size: 1.1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
-.heart{position:fixed; z-index:9999; pointer-events:none; animation:float 1s forwards;}
-@keyframes float{from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(-60px) scale(1.5)}}
-.map{margin-top:10px;border-radius:15px;overflow:hidden} iframe{width:100%;height:180px;border:0}
-.panel{margin-top:30px; padding:25px; border-radius:20px; background:rgba(255,255,255,.7); backdrop-filter:blur(10px); box-shadow:0 10px 30px rgba(0,0,0,.1);}
-body.romantic .panel{background:rgba(255,255,255,.08)}
-.past-trip {background: rgba(255,255,255,0.4); border-radius: 15px; padding: 15px; margin-bottom: 20px; border-left: 5px solid #ec4899;}
-body.romantic .past-trip { background: rgba(0,0,0,0.3); }
-.gallery {display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 15px; margin-top: 15px;}
-.photo-card {position: relative; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.1); aspect-ratio: 1;}
-.photo-card img {width: 100%; height: 100%; object-fit: cover; display: block;}
-.btn-delete-photo {position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; font-weight: bold;}
-.hidden { display: none; }
-</style>
+<!-- NAPOJENÍ STYLŮ -->
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
@@ -59,7 +20,7 @@ body.romantic .past-trip { background: rgba(0,0,0,0.3); }
 <button class="btn" onclick="renderCities()">🔍 Plánovat</button>
 <button class="btn" onclick="generateItinerary()">🎒 Aktuální Víkend</button>
 <button class="btn btn-success" onclick="renderPastTrips()">📸 Proběhlé výlety</button>
-<button class="btn" onclick="toggleRomantic()">🌙 Temný mód</button>
+<button class="btn" onclick="toggleDarkMode()">🌙 Temný mód</button>
 <button class="btn btn-warning" onclick="document.getElementById('importJson').click()">📂 Import JSON</button>
 <button class="btn btn-warning" onclick="exportData()">💾 Export JSON</button>
 <input type="file" id="importJson" class="hidden" accept=".json" onchange="importData(event)">
@@ -72,15 +33,12 @@ body.romantic .past-trip { background: rgba(0,0,0,0.3); }
 <script src="app.js"></script>
 
 <script>
-// Pomocná proměnná pro fotky (toto platí jen pro tuto konkrétní obrazovku)
 let currentTripIdForPhoto = null;
 
-// --- POMOCNÉ FUNKCE ---
 function spawnHeart(x,y){
   const h=document.createElement("div");
   h.className="heart"; h.textContent="❤️";
   h.style.left=x+"px"; h.style.top=y+"px";
-  h.style.position="fixed"; h.style.zIndex="9999";
   document.body.appendChild(h);
   setTimeout(()=>h.remove(),1000);
 }
@@ -90,14 +48,13 @@ function parseKey(key) { return JSON.parse(decodeURIComponent(key)); }
 
 function toggleLike(key, e){
   if(liked.has(key)) liked.delete(key); else liked.add(key);
-  saveState(); // Volá funkci z app.js
+  saveState(); 
   if(e && e.stopPropagation) e.stopPropagation();
   const ev = e || window.event;
   spawnHeart(ev.clientX, ev.clientY);
   if(document.querySelector('.grid')) renderCities(); else generateItinerary();
 }
 
-// --- 1. PLÁNOVÁNÍ ---
 function renderCities(){
   const container = document.getElementById("main-content");
   container.innerHTML="";
@@ -126,7 +83,6 @@ function createCard(item, type, key){
   </div>`;
 }
 
-// --- 2. VÍKEND ---
 function generateItinerary(){
   const container = document.getElementById("main-content");
   
@@ -135,7 +91,6 @@ function generateItinerary(){
       return; 
   }
 
-  // Převod lajknutých klíčů zpět na objekty
   const selected = [...liked].map(k => parseKey(k));
   const hotels = selected.filter(i => i.type === "hotel");
   const rests = selected.filter(i => i.type === "restaurant");
@@ -145,12 +100,9 @@ function generateItinerary(){
       <p>Máte vybráno: <b>${hotels.length}</b> hotelů a <b>${rests.length}</b> restaurací.</p>
       <hr style="margin: 15px 0; border:0; border-top:1px solid #ccc; opacity:0.3;">`;
 
-  // LOGIKA KONTROLY
   if(hotels.length === 1 && rests.length === 1) {
       const h = hotels[0];
       const r = rests[0];
-      
-      // Zjistíme, zda se města shodují
       const isSameCity = h.city === r.city;
 
       html += `<div style="text-align:left; max-width:400px; margin: 0 auto 20px;">
@@ -159,20 +111,17 @@ function generateItinerary(){
       </div>`;
 
       if(!isSameCity) {
-          // VAROVÁNÍ: Města jsou jiná
           html += `
           <div style="background: #fffbeb; border: 1px solid #f59e0b; padding: 15px; border-radius: 15px; margin-bottom: 20px; color: #92400e;">
               ⚠️ <b>Pozor:</b> Vybraná místa nejsou ve stejném městě! <br> 
               Z ${h.city} do ${r.city} to může být kus cesty.
           </div>`;
       } else {
-          // POTVRZENÍ: Vše je v pořádku
           html += `<p style="color:#10b981; margin-bottom:15px;">✨ Skvělá volba! Obě místa jsou v destinaci ${h.city}.</p>`;
       }
 
       html += `<button class="btn btn-success" onclick="approveTrip()">✅ Zrealizovat výlet a přesunout do archivu</button>`;
   } else {
-      // Pokud není vybrán přesně 1 a 1
       html += `
       <p style="color:#ef4444; font-weight:bold; margin: 15px 0;">
           Pro schválení výletu musíš vybrat přesně 1 hotel a 1 restauraci.
@@ -195,7 +144,6 @@ function approveTrip() {
   renderPastTrips();
 }
 
-// --- 3. PROBĚHLÉ VÝLETY ---
 function renderPastTrips() {
   const container = document.getElementById("main-content");
   if(pastTrips.length === 0) { container.innerHTML="<div class='panel' style='text-align:center;'><h2>📸 Žádné proběhlé výlety</h2></div>"; return; }
@@ -225,7 +173,6 @@ function renderPastTrips() {
   container.innerHTML = html + `</div>`;
 }
 
-// --- FOTOGRAFIE a DATA ---
 function triggerPhotoUpload(id) { currentTripIdForPhoto = id; document.getElementById('photoInput').click(); }
 function handlePhotos(event) {
   const files = event.target.files;
@@ -261,7 +208,6 @@ function importData(event) {
   reader.readAsText(file);
 }
 
-// Start
 renderCities();
 </script>
 </body>
