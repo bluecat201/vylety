@@ -1,3 +1,15 @@
+let CURRENT_USER = null;
+
+function initUser() {
+    CURRENT_USER = localStorage.getItem("userName");
+
+    if (!CURRENT_USER) {
+        CURRENT_USER = "Anonymní kočka";
+    }
+
+    console.log("Aktuální uživatel:", CURRENT_USER);
+}
+
 // =========================================
 // PWA & SERVICE WORKER
 // =========================================
@@ -148,25 +160,22 @@ async function saveHighScore(gameName, score) {
         return;
     }
 
-    let finalName = localStorage.getItem("userName");
+    const finalName = CURRENT_USER || "Anonymní kočka";
 
-    // fallback (kdyby fakt nebyl)
-    if (!finalName) {
-        finalName = "Anonymní kočka";
-    }
-
-    console.log(`--- DEBUG VÝPIS ---`);
-    console.log(`Hra: ${gameName} | Skóre: ${score} | Jméno: ${finalName}`);
+    console.log("Ukládám jako:", finalName);
 
     try {
-        // Ukládáme do Firestore
-        await db.collection("leaderboards").doc(gameName).collection("scores").add({
-            user: String(finalName), // Jistota, že je to text
-            score: Number(score),
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            date: new Date().toLocaleDateString()
-        });
-        console.log("✅ Úspěšně zapsáno do DB!");
+        await db.collection("leaderboards")
+            .doc(gameName)
+            .collection("scores")
+            .add({
+                user: finalName,
+                score: Number(score),
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                date: new Date().toLocaleDateString()
+            });
+
+        console.log("✅ Uloženo!");
     } catch (error) {
         console.error("❌ Chyba Firebase:", error);
     }
@@ -406,9 +415,11 @@ function toggleDarkMode() {
 // Upravená inicializace po načtení dokumentu
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
+  initUser(); // 🔥 DŮLEŽITÉ
+
   if (checkAuth()) { 
     loadState(); 
-    renderUserPanel(); // Zobrazí jméno a logout tlačítko
+    renderUserPanel();
   }
 });
 

@@ -202,7 +202,7 @@
                 async function handleGameOver() {
                     try {
                         // Vynucené načtení jména těsně před uložením
-                        const jmenoProUlozeni = sessionStorage.getItem("userName") || "Anonymní kočka";
+                        const jmenoProUlozeni = CURRENT_USER;
                         console.log("Pokus o uložení pro:", jmenoProUlozeni);
 
                         // Čekáme na uložení do Firebase
