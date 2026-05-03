@@ -10,7 +10,6 @@ if ('serviceWorker' in navigator) {
 // =========================================
 // PŘIHLÁŠENÍ S ROLEMI
 // =========================================
-
 const users = {
   "bluecat": { pass: "RGF2aWQyMDAy", role: "admin", name: "bluecat" },
   "bastet": { pass: "R29GdWNrWW91cnNlbGYyNio=", role: "admin", name: "bastet" },
@@ -21,7 +20,7 @@ function checkAuth() {
   if (sessionStorage.getItem("isLogged") === "true") {
       const overlay = document.getElementById("login-overlay");
       if(overlay) overlay.style.display = "none";
-      applyRoleRestrictions(); // Zapne/vypne tlačítka podle role
+      applyRoleRestrictions();
       return true;
   }
   return false;
@@ -30,24 +29,19 @@ function checkAuth() {
 function doLogin() {
   const u = document.getElementById("loginUser").value.toLowerCase();
   const p = document.getElementById("loginPass").value;
-  
-  // Pomocná funkce, která "zašifruje" zadané heslo stejně, jako je uloženo nahoře
   const encodedPass = btoa(p); 
 
   if (users[u] && users[u].pass === encodedPass) {
       sessionStorage.setItem("isLogged", "true");
       sessionStorage.setItem("userRole", users[u].role);
       sessionStorage.setItem("userName", users[u].name);
-      
       document.getElementById("login-overlay").style.display = "none";
       
-      // Speciální přivítání pro Steva
       if (users[u].role === "steve") {
           alert("Zdar Steve! Můžeš koukat, ale nic nám tu nerozbij xD");
       } else {
           alert(`Vítej zpět, ${users[u].name}! ❤️`);
       }
-
       loadState();
       applyRoleRestrictions();
   } else {
@@ -60,11 +54,8 @@ function logout() {
   location.reload();
 }
 
-// Funkce, která skryje administrátorská tlačítka pro diváky a Steva
 function applyRoleRestrictions() {
   const role = sessionStorage.getItem("userRole");
-  
-  // Pokud je to viewer nebo steve, přidáme do body speciální třídu
   if (role === "viewer" || role === "steve") {
       document.body.classList.add("readonly-mode");
   } else {
@@ -72,19 +63,9 @@ function applyRoleRestrictions() {
   }
 }
 
-// Ochrana před zavoláním funkce přes konzoli
-function requireAdmin(actionFunction) {
-  if (sessionStorage.getItem("userRole") !== "admin") {
-      alert("Na tohle nemáš práva! (Dívám se na tebe, Steve 👀)");
-      return;
-  }
-  actionFunction();
-}
-
 // =========================================
-// FIREBASE DATABÁZE (REAL-TIME SYNC)
+// FIREBASE DATABÁZE (FIRESTORE)
 // =========================================
-// Až si založíte Firebase (Firestore), vložte sem své klíče:
 const firebaseConfig = {
   apiKey: "AIzaSyDlfyiP--z5yc35ovXxQ57zbVWCYTjsaVk",
   authDomain: "cat-goddes.firebaseapp.com",
@@ -93,11 +74,127 @@ const firebaseConfig = {
 
 let db = null;
 try {
-  if (typeof firebase !== 'undefined' && firebaseConfig.apiKey !== "AIzaSyDlfyiP--z5yc35ovXxQ57zbVWCYTjsaVk") {
+  if (typeof firebase !== 'undefined') {
       firebase.initializeApp(firebaseConfig);
       db = firebase.firestore();
+      console.log("Firebase (Firestore) připojen!");
   }
-} catch (e) { console.log("Firebase není připojen, jedeme lokálně."); }
+} catch (e) { 
+  console.log("Firebase Error:", e); 
+}
+
+// =========================================
+// HUDBA (DYNAMICKÁ S HLASITOSTÍ)
+// =========================================
+let musicEnabled = localStorage.getItem("musicEnabled") !== "false"; 
+let musicVolume = parseFloat(localStorage.getItem("musicVolume") || "0.5"); // Výchozí 50%
+
+let bgMusic = new Audio(); 
+bgMusic.loop = true;
+bgMusic.volume = musicVolume; // Nastavíme uloženou hlasitost
+
+function setGameMusic(file) {
+    bgMusic.src = file;
+}
+
+function playMusic() {
+    if (musicEnabled && bgMusic.src) {
+        bgMusic.play().catch(e => console.log("Autoplay blokován"));
+    }
+}
+
+function stopMusic() {
+    bgMusic.pause();
+    bgMusic.currentTime = 0;
+}
+
+// Funkce pro slider
+function changeVolume(val) {
+    musicVolume = parseFloat(val);
+    bgMusic.volume = musicVolume;
+    localStorage.setItem("musicVolume", musicVolume);
+    
+    // Pokud je hlasitost 0, bereme to jako vypnuté, jinak zapnuté
+    if (musicVolume > 0) {
+        musicEnabled = true;
+        localStorage.setItem("musicEnabled", "true");
+    }
+}
+
+function toggleGameMusic() {
+    musicEnabled = !musicEnabled;
+    localStorage.setItem("musicEnabled", musicEnabled);
+    if (musicEnabled) {
+        if (musicVolume === 0) { // Pokud zapnou hudbu a byla na nule, dáme ji na 50%
+            musicVolume = 0.5;
+            bgMusic.volume = 0.5;
+            localStorage.setItem("musicVolume", "0.5");
+        }
+        playMusic(); 
+    } else {
+        bgMusic.pause();
+    }
+    return musicEnabled;
+}
+
+// =========================================
+// FIRESTORE ŽEBŘÍČKY
+// =========================================
+async function saveHighScore(gameName, score) {
+    if (!db) return;
+    const user = sessionStorage.getItem("userName") || "Anonym";
+    const date = new Date().toLocaleDateString();
+    
+    try {
+        await db.collection("leaderboards").doc(gameName).collection("scores").add({
+            user: user,
+            score: score,
+            date: date,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    } catch (error) { console.error("Chyba Firestore:", error); }
+}
+
+async function loadLeaderboardHTML(gameName, containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    // Pokud db ještě není připravena, počkáme sekundu a zkusíme to znovu
+    if (!db) {
+        container.innerHTML = "Připojování k serveru... ⏳";
+        setTimeout(() => loadLeaderboardHTML(gameName, containerId), 1000);
+        return;
+    }
+
+    container.innerHTML = "Načítám nejlepší skóre... 🏆";
+
+    try {
+        const snapshot = await db.collection("leaderboards").doc(gameName).collection("scores")
+            .orderBy("score", "desc")
+            .limit(5)
+            .get();
+
+        if (snapshot.empty) {
+            container.innerHTML = "<p style='text-align:center;'>Zatím žádné rekordy. Buď první!</p>";
+            return;
+        }
+
+        let html = `<table style="width:100%; border-collapse: collapse;">`;
+        let i = 1;
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            html += `<tr style="border-bottom: 1px solid #eee;">
+                        <td style="padding:5px;">${i++}. <b>${data.user}</b></td>
+                        <td style="padding:5px; text-align:right;">${data.score} ❤️</td>
+                     </tr>`;
+        });
+        html += `</table>`;
+        container.innerHTML = html;
+    } catch (error) {
+        console.error("Chyba žebříčku:", error);
+        container.innerHTML = "<p>Nepodařilo se načíst data. Zkontroluj konzoli.</p>";
+    }
+}
 
 // =========================================
 // GLOBÁLNÍ DATA A STAV
@@ -328,3 +425,26 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
   console.log("App lze nainstalovat 📲");
 });
+
+// Správa žebříčků
+function saveHighScore(gameName, score) {
+    const user = sessionStorage.getItem("userName") || "Anonym";
+    let leaderboards = JSON.parse(localStorage.getItem("leaderboards") || "{}");
+    if (!leaderboards[gameName]) leaderboards[gameName] = [];
+    
+    leaderboards[gameName].push({ user, score, date: new Date().toLocaleDateString() });
+    leaderboards[gameName].sort((a, b) => b.score - a.score);
+    leaderboards[gameName] = leaderboards[gameName].slice(0, 5); // Jen top 5
+    
+    localStorage.setItem("leaderboards", JSON.stringify(leaderboards));
+}
+
+function getLeaderboardHTML(gameName) {
+    const leaderboards = JSON.parse(localStorage.getItem("leaderboards") || "{}");
+    const scores = leaderboards[gameName] || [];
+    if (scores.length === 0) return "<p>Zatím žádné záznamy.</p>";
+    
+    return `<ul style="list-style:none; padding:0;">
+        ${scores.map(s => `<li style="margin-bottom:5px;"><b>${s.user}:</b> ${s.score} <small>(${s.date})</small></li>`).join('')}
+    </ul>`;
+}

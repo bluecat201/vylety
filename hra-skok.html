@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bluecatův výšlap 🐱</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #e0f2fe; flex-direction: column; }
+        body.dark-mode { background: #0f172a; }
+        canvas { display: none; background: white; border-radius: 15px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }
+        body.dark-mode canvas { background: #1e293b; }
+        .menu-overlay { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; }
+        body.dark-mode .menu-overlay { background: #1e293b; color: white; }
+        .menu-btn { width: 100%; margin-bottom: 10px; display: block; box-sizing: border-box; }
+        #game-info { display: none; text-align: center; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div id="main-menu" class="menu-overlay fade-in">
+        <h1 style="color:#6366f1">Bluecatův výšlap 🐱</h1>
+        
+        <!-- Hlavní tlačítka -->
+        <div id="menu-buttons">
+            <button class="btn menu-btn" onclick="startGame()">▶️ Start</button>
+            <button class="btn menu-btn" style="background:#8b5cf6;" onclick="showOptions()">⚙️ Možnosti</button>
+            <button class="btn menu-btn" style="background:#64748b;" onclick="showLeaderboard()">🏆 Žebříček</button>
+            <a href="hra.html" class="btn menu-btn" style="background:#4b5563;">⬅ Konec</a>
+        </div>
+
+        <!-- Žebříček -->
+        <div id="leaderboard-section" style="display:none; margin-top:20px;">
+            <h3 style="color:#6366f1">Top 5 Výšlapů</h3>
+            <div id="leaderboard-content" style="text-align: left; font-size: 0.9rem; margin-bottom: 15px;"></div>
+            <button class="btn menu-btn" style="background:#64748b;" onclick="toggleSection('menu-buttons')">Zpět</button>
+        </div>
+
+        <!-- MOŽNOSTI (skryté) -->
+        <div id="options-section" style="display:none; margin-top:20px;">
+            <h3 style="color:#8b5cf6">Možnosti</h3>
+            
+            <!-- Slider hlasitosti -->
+            <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom: 10px;">Hlasitost: <span id="vol-perc">50</span>%</label>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.5" 
+                    style="width: 100%; cursor: pointer;" oninput="handleVolumeChange(this.value)">
+            </div>
+
+            <button class="btn menu-btn" id="music-btn" onclick="handleMusicToggle()">Hudba: ZAPNUTO</button>
+            <button class="btn menu-btn" style="background:#64748b;" onclick="toggleSection('menu-buttons')">Zpět</button>
+        </div>
+    </div>
+
+    <div id="game-info">
+        <h2 style="color: #0369a1; margin: 0;">Skóre: <span id="score">0</span></h2>
+        <p style="font-size: 0.8rem; color: #64748b;">Šipky vlevo/vpravo nebo nakláněj mobil</p>
+    </div>
+    <canvas id="jumpCanvas"></canvas>
+
+    <!-- Firestore Knihovny -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script src="app.js"></script>
+    <script>
+        // Nastavení specifické hudby pro tuto hru
+        setGameMusic("skok-music.mp3");
+
+        window.addEventListener('click', () => {
+            playMusic();
+        }, { once: true });
+
+        // Nastavení tématu a UI
+        if(localStorage.getItem("theme") === "dark") document.body.classList.add("dark-mode");
+        // Synchronizace slideru při načtení menu
+        function updateOptionsUI() {
+            const vol = localStorage.getItem("musicVolume") || "0.5";
+            const slider = document.getElementById('volume-slider');
+            if (slider) {
+                slider.value = vol;
+                document.getElementById('vol-perc').innerText = Math.round(vol * 100);
+            }
+            const btn = document.getElementById('music-btn');
+            if (btn) btn.innerText = musicEnabled ? "Hudba: ZAPNUTO 🔊" : "Hudba: VYPNUTO 🔇";
+        }
+
+        // Volání při změně slideru
+        function handleVolumeChange(val) {
+            changeVolume(val); 
+            document.getElementById('vol-perc').innerText = Math.round(val * 100);
+            if (parseFloat(val) > 0 && !musicEnabled) {
+                handleMusicToggle();
+            }
+        }
+
+        // Nezapomeň zavolat updateOptionsUI() tam, kde otevíráš sekci možností!
+        function showOptions() {
+            toggleSection('options-section');
+            updateOptionsUI();
+        }
+
+        const canvas = document.getElementById('jumpCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth > 400 ? 400 : window.innerWidth - 20;
+        canvas.height = window.innerHeight - 150;
+
+        let score = 0; let platforms = []; let player = {};
+        let gravity = 0.4; let jumpStrength = -10; let gameLoop;
+
+        // UI Logika
+        function toggleSection(sectionId) {
+            document.getElementById('menu-buttons').style.display = 'none';
+            document.getElementById('leaderboard-section').style.display = 'none';
+            document.getElementById('options-section').style.display = 'none';
+            document.getElementById(sectionId).style.display = 'block';
+        }
+
+        function handleMusicToggle() {
+            let isPlaying = toggleGameMusic();
+            document.getElementById('music-btn').innerText = isPlaying ? "Hudba: ZAPNUTO 🔊" : "Hudba: VYPNUTO 🔇";
+        }
+
+        function showLeaderboard() {
+            toggleSection('leaderboard-section');
+            loadLeaderboardHTML('skok', 'leaderboard-content');
+        }
+
+        // Herní logika
+        function startGame() {
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('game-info').style.display = 'block';
+            canvas.style.display = 'block';
+            
+            // Resetování proměnných pro novou hru
+            score = 0;
+            player = { x: canvas.width/2, y: canvas.height - 50, w: 40, h: 40, vy: 0, vx: 0 };
+            platforms = [];
+            for(let i=0; i<7; i++) {
+                platforms.push({ x: Math.random()*(canvas.width-60), y: i * (canvas.height/7), w: 60, h: 10 });
+            }
+            
+            playMusic();
+            draw(); // Spustí smyčku až po kliknutí na start
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = "#6366f1";
+            ctx.font = "40px Arial";
+            ctx.fillText("🐱", player.x, player.y);
+
+            player.vy += gravity;
+            player.y += player.vy;
+            player.x += player.vx;
+
+            if(player.x > canvas.width) player.x = 0;
+            if(player.x < 0) player.x = canvas.width;
+
+            ctx.fillStyle = "#10b981";
+            platforms.forEach(p => {
+                ctx.roundRect(p.x, p.y, p.w, p.h, 5);
+                ctx.fill();
+                if(player.vy > 0 && player.x+20 > p.x && player.x+20 < p.x+p.w && player.y+30 > p.y && player.y+30 < p.y+p.h) {
+                    player.vy = jumpStrength;
+                    if(player.y < canvas.height/2) score += 10;
+                }
+            });
+
+            if(player.y < canvas.height/2) {
+                let diff = canvas.height/2 - player.y;
+                player.y += diff;
+                platforms.forEach(p => {
+                    p.y += diff;
+                    if(p.y > canvas.height) {
+                        p.y = 0;
+                        p.x = Math.random()*(canvas.width-60);
+                    }
+                });
+            }
+
+            document.getElementById('score').innerText = score;
+
+            if(player.y > canvas.height) {
+                stopMusic();
+                saveHighScore('skok', score);
+                alert("Pád! Skóre: " + score + "\nSkóre se ukládá do databáze...");
+                location.reload();
+            } else {
+                gameLoop = requestAnimationFrame(draw);
+            }
+        }
+
+        window.addEventListener('keydown', e => {
+            if(e.key === "ArrowLeft") player.vx = -5;
+            if(e.key === "ArrowRight") player.vx = 5;
+        });
+        window.addEventListener('keyup', () => player.vx = 0);
+        window.addEventListener('deviceorientation', e => { player.vx = e.gamma / 5; });
+    </script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Herní Doupě 🎮</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .game-grid {
+            display: grid; grid-template-columns: 1fr; gap: 20px;
+            padding: 20px; max-width: 500px; margin: 0 auto;
+        }
+        .game-card {
+            background: white; border-radius: 20px; padding: 20px;
+            text-align: center; text-decoration: none; color: inherit;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: 0.3s; border: 2px solid transparent;
+        }
+        .game-card:hover { transform: translateY(-5px); border-color: #ec4899; }
+        .game-card i { font-size: 3rem; display: block; margin-bottom: 10px; }
+        body.dark-mode .game-card { background: #1e293b; }
+    </style>
+</head>
+<body class="hub-page">
+    <h1 class="hub-title">Vyber si výzvu 🎮</h1>
+    
+    <div class="game-grid">
+        <a href="hra-had.html" class="game-card">
+            <i>🐍</i>
+            <h2>Srdíčkový had</h2>
+            <p>Klasika, která nikdy neomrzí.</p>
+        </a>
+        <a href="hra-steve.html" class="game-card">
+            <i>🧔‍♂️</i>
+            <h2>Bacha na Steva!</h2>
+            <p>Reflexní bitva o klidné rande.</p>
+        </a>
+        <a href="hra-skok.html" class="game-card">
+            <i>🐱</i>
+            <h2>Bluecatův výšlap</h2>
+            <p>Dostaň se co nejvýš k Bastet!</p>
+        </a>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a href="index.html" class="btn">⬅ Zpět na hlavní stranu</a>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

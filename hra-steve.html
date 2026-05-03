@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bacha na Steva! ❤️</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #fff1f2; flex-direction: column; }
+        body.dark-mode { background: #0f172a; }
+        
+        .game-area { display:none; flex-direction:column; align-items:center; }
+        
+        .menu-overlay { 
+            background: white; padding: 30px; border-radius: 20px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); max-width: 400px; width: 90%;
+        }
+        body.dark-mode .menu-overlay { background: #1e293b; color: white; }
+
+        .hole { 
+            width: 90px; height: 90px; background: #ffe4e6; border-radius: 50%; 
+            position: relative; overflow: hidden; cursor: pointer; border: 3px solid #fecdd3;
+        }
+        body.dark-mode .hole { background: #334155; border-color: #475569; }
+        
+        .char { 
+            position: absolute; bottom: -100%; left: 50%; transform: translateX(-50%);
+            font-size: 3rem; transition: bottom 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            pointer-events: none; user-select: none;
+        }
+        .hole.up .char { bottom: 10%; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 20px; }
+        
+        .menu-btn { width: 100%; margin-bottom: 10px; display: block; box-sizing: border-box; }
+    </style>
+</head>
+<body>
+
+    <!-- HLAVNÍ MENU -->
+    <div id="main-menu" class="menu-overlay fade-in">
+        <h1 style="color:#ec4899">Bacha na Steva! 🧔‍♂️</h1>
+        
+        <div id="menu-buttons">
+            <button class="btn menu-btn" onclick="initGame()">▶️ Start</button>
+            <button class="btn menu-btn" style="background:#8b5cf6;" onclick="showOptions()">⚙️ Možnosti</button>
+            <button class="btn menu-btn" style="background:#64748b;" onclick="showLeaderboard()">🏆 Žebříček</button>
+            <a href="hra.html" class="btn menu-btn" style="background:#4b5563;">⬅ Konec</a>
+        </div>
+
+        <!-- ŽEBŘÍČEK (skrytý) -->
+        <div id="leaderboard-section" style="display:none; margin-top:20px;">
+            <h3 style="color:#ec4899">Top 5 Láskařů</h3>
+            <div id="leaderboard-content" style="text-align: left; font-size: 0.9rem; margin-bottom: 15px;"></div>
+            <button class="btn menu-btn" style="background:#64748b;" onclick="toggleSection('menu-buttons')">Zpět</button>
+        </div>
+
+        <!-- MOŽNOSTI (skryté) -->
+        <div id="options-section" style="display:none; margin-top:20px;">
+            <h3 style="color:#8b5cf6">Možnosti</h3>
+            
+            <!-- Slider hlasitosti -->
+            <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom: 10px;">Hlasitost: <span id="vol-perc">50</span>%</label>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.5" 
+                    style="width: 100%; cursor: pointer;" oninput="handleVolumeChange(this.value)">
+            </div>
+
+            <button class="btn menu-btn" id="music-btn" onclick="handleMusicToggle()">Hudba: ZAPNUTO</button>
+            <button class="btn menu-btn" style="background:#64748b;" onclick="toggleSection('menu-buttons')">Zpět</button>
+        </div>
+    </div>
+
+    <!-- HERNÍ PLOCHA -->
+    <div id="game-container" class="game-area">
+        <div style="font-size: 1.5rem; margin-bottom:10px; font-weight: bold; color: #ec4899;">
+            Skóre: <span id="score">0</span> | Životy: <span id="lives">❤️❤️❤️</span>
+        </div>
+        <div class="grid">
+            <!-- 9 děr pro Steva -->
+            <div class="hole" onclick="hit(0)"><div class="char"></div></div>
+            <div class="hole" onclick="hit(1)"><div class="char"></div></div>
+            <div class="hole" onclick="hit(2)"><div class="char"></div></div>
+            <div class="hole" onclick="hit(3)"><div class="char"></div></div>
+            <div class="hole" onclick="hit(4)"><div class="char"></div></div>
+            <div class="hole" onclick="hit(5)"><div class="char"></div></div>
+            <div class="hole" onclick="hit(6)"><div class="char"></div></div>
+            <div class="hole" onclick="hit(7)"><div class="char"></div></div>
+            <div class="hole" onclick="hit(8)"><div class="char"></div></div>
+        </div>
+    </div>
+
+    <!-- Firebase knihovny -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    
+    <script src="app.js"></script>
+    <script>
+        // Nastavení specifické hudby pro tuto hru
+        setGameMusic("steve-music.mp3");
+
+        window.addEventListener('click', () => {
+            playMusic();
+        }, { once: true });
+
+        let score = 0; let lives = 3; let isPlaying = false; let activeHole = -1; let timer;
+
+        // Synchronizace slideru při načtení menu
+        function updateOptionsUI() {
+            const vol = localStorage.getItem("musicVolume") || "0.5";
+            const slider = document.getElementById('volume-slider');
+            if (slider) {
+                slider.value = vol;
+                document.getElementById('vol-perc').innerText = Math.round(vol * 100);
+            }
+            const btn = document.getElementById('music-btn');
+            if (btn) btn.innerText = musicEnabled ? "Hudba: ZAPNUTO 🔊" : "Hudba: VYPNUTO 🔇";
+        }
+
+        // Volání při změně slideru
+        function handleVolumeChange(val) {
+            changeVolume(val); 
+            document.getElementById('vol-perc').innerText = Math.round(val * 100);
+            if (parseFloat(val) > 0 && !musicEnabled) {
+                handleMusicToggle();
+            }
+        }
+
+        // Nezapomeň zavolat updateOptionsUI() tam, kde otevíráš sekci možností!
+        function showOptions() {
+            toggleSection('options-section');
+            updateOptionsUI();
+        }
+
+        function toggleSection(sectionId) {
+            document.getElementById('menu-buttons').style.display = 'none';
+            document.getElementById('leaderboard-section').style.display = 'none';
+            document.getElementById('options-section').style.display = 'none';
+            document.getElementById(sectionId).style.display = 'block';
+        }
+
+        function handleMusicToggle() {
+            let isPlaying = toggleGameMusic();
+            document.getElementById('music-btn').innerText = isPlaying ? "Hudba: ZAPNUTO 🔊" : "Hudba: VYPNUTO 🔇";
+        }
+
+        function showLeaderboard() {
+            toggleSection('leaderboard-section');
+            loadLeaderboardHTML('steve', 'leaderboard-content');
+        }
+
+        function initGame() {
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('game-container').style.display = 'flex';
+            score = 0; lives = 3; isPlaying = true;
+            updateUI();
+            playMusic(); // Spustí hudbu specifickou pro Steva
+            nextTick();
+        }
+
+        function nextTick() {
+            if(!isPlaying) return;
+            const holes = document.querySelectorAll('.hole');
+            holes.forEach(h => h.classList.remove('up'));
+            
+            activeHole = Math.floor(Math.random() * 9);
+            const isSteve = Math.random() < 0.35; // 35% šance na Steva
+            
+            const charDiv = holes[activeHole].querySelector('.char');
+            charDiv.innerHTML = isSteve ? '🧔‍♂️' : '❤️';
+            holes[activeHole].dataset.type = isSteve ? 'steve' : 'heart';
+            holes[activeHole].classList.add('up');
+
+            // Čím vyšší skóre, tím rychleji mizí
+            let speed = Math.max(400, 1000 - (score * 25));
+            timer = setTimeout(() => {
+                if(isPlaying) nextTick();
+            }, speed);
+        }
+
+        function hit(i) {
+            if(!isPlaying || i !== activeHole) return;
+            const hole = document.querySelectorAll('.hole')[i];
+            if(!hole.classList.contains('up')) return;
+
+            if(hole.dataset.type === 'heart') {
+                score++;
+                // Malý vizuální efekt
+                hole.style.background = "#bbf7d0"; 
+                setTimeout(() => hole.style.background = "", 200);
+            } else {
+                lives--;
+                hole.style.background = "#fecaca";
+                setTimeout(() => hole.style.background = "", 200);
+                if(lives <= 0) endGame();
+            }
+            
+            hole.classList.remove('up');
+            activeHole = -1; // Zabrání vícenásobnému kliknutí na stejnou díru
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('score').innerText = score;
+            document.getElementById('lives').innerText = '❤️'.repeat(lives);
+        }
+
+        function endGame() {
+            isPlaying = false;
+            stopMusic();
+            clearTimeout(timer);
+            saveHighScore('steve', score);
+            alert("Konec! Steve tě dostal. Skóre: " + score);
+            location.reload();
+        }
+
+        if(localStorage.getItem("theme") === "dark") document.body.classList.add("dark-mode");
+    </script>
+</body>
+</html>

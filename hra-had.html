@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Srdíčková Mise ❤️</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body { margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #fdf2f8; flex-direction: column; }
+        body.dark-mode { background: #0f172a; }
+        #game-container { display: none; position: relative; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); background: white; border: 5px solid #ec4899; }
+        body.dark-mode #game-container { background: #1e293b; border-color: #6366f1; }
+        canvas { display: block; }
+        .menu-overlay { background: white; padding: 30px; border-radius: 20px; text-align: center; width: 90%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        body.dark-mode .menu-overlay { background: #1e293b; color: white; }
+        .menu-btn { width: 100%; margin-bottom: 10px; display: block; box-sizing: border-box; }
+        .game-ui { display: none; text-align: center; margin-bottom: 20px; }
+        .controls { display: none; margin-top: 20px; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .control-btn { width: 60px; height: 60px; background: white; border: 2px solid #ddd; border-radius: 15px; font-size: 1.5rem; cursor: pointer; }
+        @media (min-width: 768px) { .controls { display: none !important; } }
+    </style>
+</head>
+<body>
+
+    <!-- Sjednocené Menu -->
+    <div id="main-menu" class="menu-overlay fade-in">
+        <h1 style="color:#ec4899">Srdíčková Mise ❤️</h1>
+        <div id="menu-buttons">
+            <button class="btn menu-btn" onclick="startGame()">▶️ Start</button>
+            <button class="btn menu-btn" style="background:#8b5cf6;" onclick="showOptions()">⚙️ Možnosti</button>
+            <button class="btn menu-btn" style="background:#64748b;" onclick="showLeaderboard()">🏆 Žebříček</button>
+            <a href="hra.html" class="btn menu-btn" style="background:#4b5563;">⬅ Konec</a>
+        </div>
+        <div id="leaderboard-section" style="display:none; margin-top:20px;">
+            <h3 style="color:#ec4899">Nejdelší Lásky</h3>
+            <div id="leaderboard-content" style="text-align: left; font-size: 0.9rem; margin-bottom: 15px;"></div>
+            <button class="btn menu-btn" style="background:#64748b;" onclick="toggleSection('menu-buttons')">Zpět</button>
+        </div>
+        <!-- MOŽNOSTI (skryté) -->
+        <div id="options-section" style="display:none; margin-top:20px;">
+            <h3 style="color:#8b5cf6">Možnosti</h3>
+            
+            <!-- Slider hlasitosti -->
+            <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom: 10px;">Hlasitost: <span id="vol-perc">50</span>%</label>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.05" value="0.5" 
+                    style="width: 100%; cursor: pointer;" oninput="handleVolumeChange(this.value)">
+            </div>
+
+            <button class="btn menu-btn" id="music-btn" onclick="handleMusicToggle()">Hudba: ZAPNUTO</button>
+            <button class="btn menu-btn" style="background:#64748b;" onclick="toggleSection('menu-buttons')">Zpět</button>
+        </div>
+    </div>
+
+    <!-- UI Hry -->
+    <div class="game-ui" id="game-ui">
+        <div style="font-size: 1.5rem; font-weight: bold; color: #ec4899;">Skóre: <span id="score">0</span></div>
+    </div>
+
+    <div id="game-container">
+        <canvas id="gameCanvas" width="300" height="300"></canvas>
+    </div>
+
+    <div class="controls" id="mobile-controls">
+        <div></div><button class="control-btn" onclick="changeDir('up')">⬆️</button><div></div>
+        <button class="control-btn" onclick="changeDir('left')">⬅️</button>
+        <button class="control-btn" onclick="changeDir('down')">⬇️</button>
+        <button class="control-btn" onclick="changeDir('right')">➡️</button>
+    </div>
+
+    <!-- Firestore Knihovny -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script src="app.js"></script>
+    <script>
+        // Nastavení specifické hudby pro tuto hru
+        setGameMusic("had-music.mp3");
+
+        // Prohlížeče blokují hudbu bez interakce. 
+        // Spustíme ji, jakmile uživatel poprvé klikne kamkoliv na stránku.
+        window.addEventListener('click', () => {
+            playMusic();
+        }, { once: true });
+
+        if(localStorage.getItem("theme") === "dark") document.body.classList.add("dark-mode");
+        // Synchronizace slideru při načtení menu
+        function updateOptionsUI() {
+            const vol = localStorage.getItem("musicVolume") || "0.5";
+            const slider = document.getElementById('volume-slider');
+            if (slider) {
+                slider.value = vol;
+                document.getElementById('vol-perc').innerText = Math.round(vol * 100);
+            }
+            const btn = document.getElementById('music-btn');
+            if (btn) btn.innerText = musicEnabled ? "Hudba: ZAPNUTO 🔊" : "Hudba: VYPNUTO 🔇";
+        }
+
+        // Volání při změně slideru
+        function handleVolumeChange(val) {
+            changeVolume(val); 
+            document.getElementById('vol-perc').innerText = Math.round(val * 100);
+            if (parseFloat(val) > 0 && !musicEnabled) {
+                handleMusicToggle();
+            }
+        }
+
+        // Nezapomeň zavolat updateOptionsUI() tam, kde otevíráš sekci možností!
+        function showOptions() {
+            toggleSection('options-section');
+            updateOptionsUI();
+        }
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        const box = 20;
+        let score = 0; let gameSpeed = 150; let d; let gameLoop;
+        let snake = []; let food = {};
+
+        // UI Logika
+        function toggleSection(sectionId) {
+            document.getElementById('menu-buttons').style.display = 'none';
+            document.getElementById('leaderboard-section').style.display = 'none';
+            document.getElementById('options-section').style.display = 'none';
+            document.getElementById(sectionId).style.display = 'block';
+        }
+        function handleMusicToggle() {
+            let isPlaying = toggleGameMusic();
+            document.getElementById('music-btn').innerText = isPlaying ? "Hudba: ZAPNUTO 🔊" : "Hudba: VYPNUTO 🔇";
+        }
+        function showLeaderboard() {
+            toggleSection('leaderboard-section');
+            loadLeaderboardHTML('had', 'leaderboard-content');
+        }
+
+        // Spuštění hry
+        function startGame() {
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'block';
+            document.getElementById('game-container').style.display = 'block';
+            document.getElementById('mobile-controls').style.display = 'grid';
+
+            score = 0; d = null;
+            document.getElementById("score").innerHTML = score;
+            snake = [{ x: 7 * box, y: 7 * box }];
+            food = { x: Math.floor(Math.random() * 14 + 1) * box, y: Math.floor(Math.random() * 14 + 1) * box };
+            
+            playMusic();
+            gameLoop = setInterval(draw, gameSpeed);
+        }
+
+        // Ovládání
+        document.addEventListener("keydown", event => {
+            if(event.keyCode == 37 && d != "RIGHT") d = "LEFT";
+            if(event.keyCode == 38 && d != "DOWN") d = "UP";
+            if(event.keyCode == 39 && d != "LEFT") d = "RIGHT";
+            if(event.keyCode == 40 && d != "UP") d = "DOWN";
+        });
+        function changeDir(dir) {
+            if(dir == 'left' && d != "RIGHT") d = "LEFT";
+            if(dir == 'up' && d != "DOWN") d = "UP";
+            if(dir == 'right' && d != "LEFT") d = "RIGHT";
+            if(dir == 'down' && d != "UP") d = "DOWN";
+        }
+
+        // Herní smyčka
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for(let i = 0; i < snake.length; i++) {
+                ctx.fillStyle = (i == 0) ? "#ec4899" : "#f472b6";
+                ctx.beginPath(); ctx.roundRect(snake[i].x, snake[i].y, box, box, 5); ctx.fill();
+            }
+            ctx.font = "18px serif";
+            ctx.fillText("❤️", food.x, food.y + box - 2);
+
+            let snakeX = snake[0].x; let snakeY = snake[0].y;
+            if(d == "LEFT") snakeX -= box;
+            if(d == "UP") snakeY -= box;
+            if(d == "RIGHT") snakeX += box;
+            if(d == "DOWN") snakeY += box;
+
+            if(snakeX == food.x && snakeY == food.y) {
+                score++; document.getElementById("score").innerHTML = score;
+                food = { x: Math.floor(Math.random() * 14 + 1) * box, y: Math.floor(Math.random() * 14 + 1) * box };
+            } else {
+                snake.pop();
+            }
+
+            let newHead = { x: snakeX, y: snakeY };
+
+            // Náraz (Game Over)
+            if(snakeX < 0 || snakeX >= canvas.width || snakeY < 0 || snakeY >= canvas.height || snake.some(s => s.x === newHead.x && s.y === newHead.y)) {
+                clearInterval(gameLoop);
+                stopMusic();
+                saveHighScore('had', score);
+                alert("Konec hry! Skóre: " + score + "\nSkóre se ukládá...");
+                location.reload();
+                return;
+            }
+            snake.unshift(newHead);
+        }
+    </script>
+</body>
+</html>
