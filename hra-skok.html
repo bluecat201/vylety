@@ -244,10 +244,21 @@
             if(player.y > canvas.height) {
                 cancelAnimationFrame(gameLoop);
                 stopMusic();
+                
                 const finalScore = Math.floor(score / 10);
-                saveHighScore('skok', finalScore);
-                alert("Pád! Skóre: " + finalScore);
-                location.reload();
+                
+                // Vytvoříme asynchronní blok pro uložení
+                async function handleGameOver() {
+                    // Počkáme na uložení do databáze
+                    await saveHighScore('skok', finalScore);
+                    
+                    // Teprve POTÉ ukážeme alert a restartujeme
+                    alert("Pád! Tvé skóre: " + finalScore + "\nUloženo do žebříčku!");
+                    location.reload();
+                }
+                
+                handleGameOver();
+                return; // Zastavíme další provádění draw
             } else {
                 gameLoop = requestAnimationFrame(draw);
             }

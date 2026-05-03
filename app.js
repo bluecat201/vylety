@@ -427,16 +427,25 @@ window.addEventListener('beforeinstallprompt', (e) => {
 });
 
 // Správa žebříčků
-function saveHighScore(gameName, score) {
-    const user = sessionStorage.getItem("userName") || "Anonym";
-    let leaderboards = JSON.parse(localStorage.getItem("leaderboards") || "{}");
-    if (!leaderboards[gameName]) leaderboards[gameName] = [];
+async function saveHighScore(gameName, score) {
+    const userName = localStorage.getItem("userName") || "Anonymní kočka";
     
-    leaderboards[gameName].push({ user, score, date: new Date().toLocaleDateString() });
-    leaderboards[gameName].sort((a, b) => b.score - a.score);
-    leaderboards[gameName] = leaderboards[gameName].slice(0, 5); // Jen top 5
-    
-    localStorage.setItem("leaderboards", JSON.stringify(leaderboards));
+    if (!db) {
+        console.error("Databáze není připojena!");
+        return;
+    }
+
+    try {
+        // Používáme await, aby se čekalo na dokončení zápisu
+        await db.collection("leaderboards").doc(gameName).collection("scores").add({
+            user: userName,
+            score: score,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        console.log("Skóre úspěšně uloženo!");
+    } catch (error) {
+        console.error("Chyba při ukládání skóre:", error);
+    }
 }
 
 function getLeaderboardHTML(gameName) {
