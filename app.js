@@ -428,7 +428,9 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
 // Správa žebříčků
 async function saveHighScore(gameName, score) {
-    const userName = localStorage.getItem("userName") || "Anonymní kočka";
+    const loggedUser = localStorage.getItem("userName") || 
+                       localStorage.getItem("loggedInUser") || 
+                       "Hráč bez jména";
     
     if (!db) {
         console.error("Databáze není připojena!");
