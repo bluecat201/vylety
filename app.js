@@ -1,15 +1,3 @@
-let CURRENT_USER = null;
-
-function initUser() {
-    CURRENT_USER = localStorage.getItem("userName");
-
-    if (!CURRENT_USER) {
-        CURRENT_USER = "Anonymní kočka";
-    }
-
-    console.log("Aktuální uživatel:", CURRENT_USER);
-}
-
 // =========================================
 // PWA & SERVICE WORKER
 // =========================================
@@ -47,11 +35,6 @@ function doLogin() {
       sessionStorage.setItem("isLogged", "true");
       sessionStorage.setItem("userRole", users[u].role);
       sessionStorage.setItem("userName", users[u].name);
-      localStorage.setItem("userName", users[u].name);
-
-      // 🔥 TADY JE FIX
-      CURRENT_USER = users[u].name;
-
       document.getElementById("login-overlay").style.display = "none";
       
       if (users[u].role === "steve") {
@@ -59,7 +42,6 @@ function doLogin() {
       } else {
           alert(`Vítej zpět, ${users[u].name}! ❤️`);
       }
-
       loadState();
       applyRoleRestrictions();
   } else {
@@ -161,28 +143,30 @@ function toggleGameMusic() {
 
 async function saveHighScore(gameName, score) {
     if (!db) {
-        console.error("Firestore není inicializován!");
+        console.error("Chyba: Databáze není připojena.");
         return;
     }
 
-    const finalName = CURRENT_USER || "Anonymní kočka";
+    // 1. Získáme jméno přímo ze sessionStorage v momentě volání
+    let currentUser = sessionStorage.getItem("userName");
+    
+    // 2. Kontrola, jestli jméno existuje, pokud ne, zkusíme fallbacky
+    if (!currentUser || currentUser === "undefined") {
+        currentUser = localStorage.getItem("userName") || "Anonymní kočka";
+    }
 
-    console.log("Ukládám jako:", finalName);
+    console.log("Odesílám skóre pro uživatele:", currentUser); // Tady uvidíš v konzoli jméno
 
     try {
-        await db.collection("leaderboards")
-            .doc(gameName)
-            .collection("scores")
-            .add({
-                user: finalName,
-                score: Number(score),
-                timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-                date: new Date().toLocaleDateString()
-            });
-
-        console.log("✅ Uloženo!");
+        await db.collection("leaderboards").doc(gameName).collection("scores").add({
+            user: currentUser,
+            score: Number(score), // Jistota, že skóre je číslo
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            date: new Date().toLocaleDateString()
+        });
+        console.log("Uloženo do Firebase pod jménem:", currentUser);
     } catch (error) {
-        console.error("❌ Chyba Firebase:", error);
+        console.error("Chyba při zápisu do Firestore:", error);
     }
 }
 
@@ -420,11 +404,9 @@ function toggleDarkMode() {
 // Upravená inicializace po načtení dokumentu
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
-  initUser(); // 🔥 DŮLEŽITÉ
-
   if (checkAuth()) { 
     loadState(); 
-    renderUserPanel();
+    renderUserPanel(); // Zobrazí jméno a logout tlačítko
   }
 });
 
@@ -458,6 +440,16 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
   console.log("App lze nainstalovat 📲");
 });
+
+function getLeaderboardHTML(gameName) {
+    const leaderboards = JSON.parse(localStorage.getItem("leaderboards") || "{}");
+    const scores = leaderboards[gameName] || [];
+    if (scores.length === 0) return "<p>Zatím žádné záznamy.</p>";
+    
+    return `<ul style="list-style:none; padding:0;">
+        ${scores.map(s => `<li style="margin-bottom:5px;"><b>${s.user}:</b> ${s.score} <small>(${s.date})</small></li>`).join('')}
+    </ul>`;
+}
 
 // Výchozí nastavení ovládání
 let mobileControlType = localStorage.getItem("controlType") || "tilt";

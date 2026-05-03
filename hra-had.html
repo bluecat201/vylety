@@ -201,21 +201,15 @@
                 // 3. Asynchronní uložení skóre
                 async function handleGameOver() {
                     try {
-                        // Vynucené načtení jména těsně před uložením
-                        const jmenoProUlozeni = CURRENT_USER;
-                        console.log("Pokus o uložení pro:", jmenoProUlozeni);
-
                         // Čekáme na uložení do Firebase
                         await saveHighScore('had', score);
-                        
-                        alert("Konec hry! ❤️\nUživatel: " + jmenoProUlozeni + "\nVaše skóre: " + score);
+                        alert("Konec hry! ❤️\nVaše skóre: " + score + "\nSkóre bylo úspěšně uloženo do žebříčku.");
                     } catch (error) {
-                        console.error("❌ FULL ERROR:", error);
-                        console.error("❌ MESSAGE:", error.message);
-                        console.error("❌ STACK:", error.stack);
-                        alert("Konec hry! Skóre: " + score);
+                        console.error("Chyba při ukládání:", error);
+                        alert("Konec hry! Skóre: " + score + "\n(Nepodařilo se připojit k žebříčku)");
                     }
                     
+                    // 4. Restart stránky po potvrzení alertu
                     location.reload();
                 }
 
