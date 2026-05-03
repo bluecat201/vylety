@@ -148,31 +148,33 @@ async function saveHighScore(gameName, score) {
         return;
     }
 
-    // TADY JE TA ZMĚNA: Vytahujeme to VŽDY čerstvé ze sessionStorage
+    // Získáme jméno a OŠETŘÍME ho
     let finalName = sessionStorage.getItem("userName");
-
-    // Pokud je v sessionStorage prázdno, zkusíme localStorage (pro jistotu)
-    if (!finalName || finalName === "null" || finalName === "undefined") {
+    
+    // Pokud je null nebo string "null", zkusíme localStorage
+    if (!finalName || finalName === "null") {
         finalName = localStorage.getItem("userName");
     }
 
-    // Pokud ani tam nic není, teprve pak dáme Anonyma
-    if (!finalName) {
+    // Pokud je stále nic, dáme Anonyma
+    if (!finalName || finalName === "undefined") {
         finalName = "Anonymní kočka";
     }
 
-    console.log(`Ukládám skóre: ${score} pro uživatele: ${finalName}`);
+    console.log(`--- DEBUG VÝPIS ---`);
+    console.log(`Hra: ${gameName} | Skóre: ${score} | Jméno: ${finalName}`);
 
     try {
+        // Ukládáme do Firestore
         await db.collection("leaderboards").doc(gameName).collection("scores").add({
-            user: finalName,
+            user: String(finalName), // Jistota, že je to text
             score: Number(score),
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             date: new Date().toLocaleDateString()
         });
-        console.log("Zápis do DB proběhl úspěšně.");
+        console.log("✅ Úspěšně zapsáno do DB!");
     } catch (error) {
-        console.error("Chyba při zápisu do DB:", error);
+        console.error("❌ Chyba Firebase:", error);
     }
 }
 
@@ -446,16 +448,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
   console.log("App lze nainstalovat 📲");
 });
-
-function getLeaderboardHTML(gameName) {
-    const leaderboards = JSON.parse(localStorage.getItem("leaderboards") || "{}");
-    const scores = leaderboards[gameName] || [];
-    if (scores.length === 0) return "<p>Zatím žádné záznamy.</p>";
-    
-    return `<ul style="list-style:none; padding:0;">
-        ${scores.map(s => `<li style="margin-bottom:5px;"><b>${s.user}:</b> ${s.score} <small>(${s.date})</small></li>`).join('')}
-    </ul>`;
-}
 
 // Výchozí nastavení ovládání
 let mobileControlType = localStorage.getItem("controlType") || "tilt";
