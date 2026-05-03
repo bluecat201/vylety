@@ -39,6 +39,15 @@
         <div id="options-section" style="display:none; margin-top:20px;">
             <h3 style="color:#8b5cf6">Možnosti</h3>
             
+            <!-- Výběr ovládání -->
+            <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom: 10px;">Ovládání mobilu:</label>
+                <select id="control-type" class="btn menu-btn" style="background: #f1f5f9; color: #1e293b;" onchange="handleControlChange(this.value)">
+                    <option value="tilt">Naklánění (Gyroskop)</option>
+                    <option value="touch">Dotyk (Vlevo/Vpravo)</option>
+                </select>
+            </div>
+
             <!-- Slider hlasitosti -->
             <div style="margin-bottom: 20px;">
                 <label style="display:block; margin-bottom: 10px;">Hlasitost: <span id="vol-perc">50</span>%</label>
@@ -82,6 +91,8 @@
             }
             const btn = document.getElementById('music-btn');
             if (btn) btn.innerText = musicEnabled ? "Hudba: ZAPNUTO 🔊" : "Hudba: VYPNUTO 🔇";
+            const controlSelect = document.getElementById('control-type');
+            if (controlSelect) controlSelect.value = mobileControlType;
         }
 
         // Volání při změně slideru
@@ -105,7 +116,8 @@
         canvas.height = window.innerHeight - 150;
 
         let score = 0; let platforms = []; let player = {};
-        let gravity = 0.4; let jumpStrength = -10; let gameLoop;
+        let gravity = 0.4; let jumpStrength = -12; let gameLoop;
+        let gameStarted = false;
 
         // UI Logika
         function toggleSection(sectionId) {
@@ -125,78 +137,168 @@
             loadLeaderboardHTML('skok', 'leaderboard-content');
         }
 
+        function handleControlChange(val) {
+            changeControlType(val);
+        }
+
         // Herní logika
         function startGame() {
             document.getElementById('main-menu').style.display = 'none';
             document.getElementById('game-info').style.display = 'block';
             canvas.style.display = 'block';
             
-            // Resetování proměnných pro novou hru
             score = 0;
-            player = { x: canvas.width/2, y: canvas.height - 50, w: 40, h: 40, vy: 0, vx: 0 };
+            gameStarted = false; // Hra čeká na první skok
+            
+            // Hráče posuneme kousek nad první platformu, aby na ni nespadl hned
+            player = { x: canvas.width/2 - 20, y: canvas.height - 100, w: 40, h: 40, vy: 0, vx: 0 };
+            
             platforms = [];
-            for(let i=0; i<7; i++) {
-                platforms.push({ x: Math.random()*(canvas.width-60), y: i * (canvas.height/7), w: 60, h: 10 });
+            // První platforma přímo pod hráčem
+            platforms.push({ x: canvas.width/2 - 30, y: canvas.height - 50, w: 60, h: 10 });
+            
+            // Zbytek náhodně
+            for(let i=0; i<10; i++) {
+                platforms.push({ 
+                    x: Math.random() * (canvas.width - 60), 
+                    y: i * (canvas.height / 10), // Menší rozestupy (výška děleno 10 místo 7)
+                    w: 60, 
+                    h: 10 
+                });
             }
             
             playMusic();
-            draw(); // Spustí smyčku až po kliknutí na start
+            draw(); 
         }
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
+            // Vykreslení platforem
+            ctx.fillStyle = "#10b981";
+            platforms.forEach(p => {
+                ctx.beginPath();
+                ctx.roundRect(p.x, p.y, p.w, p.h, 5);
+                ctx.fill();
+                
+                // KOLIZE: Kočka padá dolů a narazí na plošinu
+                if(player.vy > 0 && 
+                player.x + 30 > p.x && 
+                player.x + 10 < p.x + p.w && 
+                player.y + 35 > p.y && 
+                player.y + 35 < p.y + p.h + 10) {
+                    player.vy = jumpStrength;
+                }
+            });
+
+            // Vykreslení kočky
             ctx.fillStyle = "#6366f1";
             ctx.font = "40px Arial";
             ctx.fillText("🐱", player.x, player.y);
 
-            player.vy += gravity;
-            player.y += player.vy;
-            player.x += player.vx;
+            if (!gameStarted) {
+                const isDark = document.body.classList.contains("dark-mode");
+                ctx.fillStyle = isDark ? "white" : "black";
+                ctx.font = "bold 20px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText("MEZERNÍK nebo DOTYK pro start", canvas.width / 2, canvas.height / 2);
+                ctx.textAlign = "left";
+            } else {
+                player.vy += gravity;
+                player.y += player.vy;
+                player.x += player.vx;
+            }
 
-            if(player.x > canvas.width) player.x = 0;
-            if(player.x < 0) player.x = canvas.width;
-
-            ctx.fillStyle = "#10b981";
-            platforms.forEach(p => {
-                ctx.roundRect(p.x, p.y, p.w, p.h, 5);
-                ctx.fill();
-                if(player.vy > 0 && player.x+20 > p.x && player.x+20 < p.x+p.w && player.y+30 > p.y && player.y+30 < p.y+p.h) {
-                    player.vy = jumpStrength;
-                    if(player.y < canvas.height/2) score += 10;
-                }
-            });
-
-            if(player.y < canvas.height/2) {
-                let diff = canvas.height/2 - player.y;
+            // --- LOGIKA POSUNU A SKÓRE ---
+            if(player.y < canvas.height / 2) {
+                let diff = canvas.height / 2 - player.y;
                 player.y += diff;
+                
+                // TADY SE PŘIČÍTÁ SKÓRE (podle toho, jak moc se posunula obrazovka)
+                score += Math.round(diff); 
+                console.log("Aktuální skóre:", score); // Sleduj v konzoli (F12)
+
                 platforms.forEach(p => {
                     p.y += diff;
                     if(p.y > canvas.height) {
-                        p.y = 0;
-                        p.x = Math.random()*(canvas.width-60);
+                        // Čím vyšší skóre, tím výše dáváme novou plošinu (obtížnost)
+                        let diffOffset = Math.min(score / 100, 150);
+                        p.y = 0 - diffOffset; 
+                        p.x = Math.random() * (canvas.width - 60);
+                        p.w = Math.max(60 - (score / 1000), 30); // Plošiny se zmenšují
                     }
                 });
             }
 
-            document.getElementById('score').innerText = score;
+            // Aktualizace textu na stránce
+            const scoreElement = document.getElementById('score');
+            if (scoreElement) {
+                scoreElement.innerText = Math.floor(score / 10); // Dělíme 10, aby čísla nebyla obrovská
+            }
 
+            // Nekonečné okraje
+            if(player.x > canvas.width) player.x = 0;
+            if(player.x < 0) player.x = canvas.width;
+
+            // Konec hry
             if(player.y > canvas.height) {
+                cancelAnimationFrame(gameLoop);
                 stopMusic();
-                saveHighScore('skok', score);
-                alert("Pád! Skóre: " + score + "\nSkóre se ukládá do databáze...");
+                const finalScore = Math.floor(score / 10);
+                saveHighScore('skok', finalScore);
+                alert("Pád! Skóre: " + finalScore);
                 location.reload();
             } else {
                 gameLoop = requestAnimationFrame(draw);
             }
         }
 
+        canvas.addEventListener('touchstart', (e) => {
+            if (!gameStarted) {
+                gameStarted = true;
+                player.vy = jumpStrength;
+            }
+
+            if (mobileControlType === "touch") {
+                const touchX = e.touches[0].clientX;
+                // Pokud klikne v levé polovině obrazovky, jede doleva
+                if (touchX < window.innerWidth / 2) {
+                    player.vx = -5;
+                } else {
+                    player.vx = 5;
+                }
+            }
+        }, { passive: true });
+
+        canvas.addEventListener('touchend', () => {
+            if (mobileControlType === "touch") {
+                player.vx = 0; // Po puštění zastaví
+            }
+        });
+
         window.addEventListener('keydown', e => {
-            if(e.key === "ArrowLeft") player.vx = -5;
-            if(e.key === "ArrowRight") player.vx = 5;
+            // START HRY MEZERNÍKEM NEBO ŠIPKAMI
+            if (e.code === "Space" || e.key === "ArrowLeft" || e.key === "ArrowRight") {
+                if (!gameStarted) {
+                    gameStarted = true;
+                    // Pokud hráč odstartoval mezerníkem, rovnou mu dáme první výskok
+                    if (e.code === "Space") player.vy = jumpStrength;
+                }
+            }
+
+            // POHYB
+            if (e.key === "ArrowLeft") player.vx = -5;
+            if (e.key === "ArrowRight") player.vx = 5;
+            
         });
         window.addEventListener('keyup', () => player.vx = 0);
-        window.addEventListener('deviceorientation', e => { player.vx = e.gamma / 5; });
+        window.addEventListener('deviceorientation', (e) => { 
+            if (mobileControlType === "tilt") {
+                if (Math.abs(e.gamma) > 5 && !gameStarted) gameStarted = true;
+                player.vx = e.gamma / 5; 
+            }
+        });
+        
     </script>
 </body>
 </html>

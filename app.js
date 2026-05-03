@@ -448,3 +448,11 @@ function getLeaderboardHTML(gameName) {
         ${scores.map(s => `<li style="margin-bottom:5px;"><b>${s.user}:</b> ${s.score} <small>(${s.date})</small></li>`).join('')}
     </ul>`;
 }
+
+// Výchozí nastavení ovládání
+let mobileControlType = localStorage.getItem("controlType") || "tilt";
+
+function changeControlType(type) {
+    mobileControlType = type;
+    localStorage.setItem("controlType", type);
+}
