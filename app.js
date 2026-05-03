@@ -140,19 +140,30 @@ function toggleGameMusic() {
 // =========================================
 // FIRESTORE ŽEBŘÍČKY
 // =========================================
+
+// Opravená a sjednocená funkce pro ukládání skóre
 async function saveHighScore(gameName, score) {
-    if (!db) return;
-    const user = sessionStorage.getItem("userName") || "Anonym";
+    if (!db) {
+        console.error("Databáze není připojena!");
+        return;
+    }
+
+    // Získáme jméno ze sessionStorage (kam ho ukládáš při doLogin)
+    const loggedUser = sessionStorage.getItem("userName") || "Anonymní kočka";
     const date = new Date().toLocaleDateString();
-    
+
     try {
+        // await zajistí, že se počká na dokončení zápisu před reloadem stránky v HTML
         await db.collection("leaderboards").doc(gameName).collection("scores").add({
-            user: user,
+            user: loggedUser,
             score: score,
             date: date,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-    } catch (error) { console.error("Chyba Firestore:", error); }
+        console.log(`Skóre pro hráče ${loggedUser} uloženo!`);
+    } catch (error) {
+        console.error("Chyba při ukládání skóre do Firestore:", error);
+    }
 }
 
 async function loadLeaderboardHTML(gameName, containerId) {
@@ -425,30 +436,6 @@ window.addEventListener('beforeinstallprompt', (e) => {
 
   console.log("App lze nainstalovat 📲");
 });
-
-// Správa žebříčků
-async function saveHighScore(gameName, score) {
-    const loggedUser = localStorage.getItem("userName") || 
-                       localStorage.getItem("loggedInUser") || 
-                       "Hráč bez jména";
-    
-    if (!db) {
-        console.error("Databáze není připojena!");
-        return;
-    }
-
-    try {
-        // Používáme await, aby se čekalo na dokončení zápisu
-        await db.collection("leaderboards").doc(gameName).collection("scores").add({
-            user: userName,
-            score: score,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        console.log("Skóre úspěšně uloženo!");
-    } catch (error) {
-        console.error("Chyba při ukládání skóre:", error);
-    }
-}
 
 function getLeaderboardHTML(gameName) {
     const leaderboards = JSON.parse(localStorage.getItem("leaderboards") || "{}");
