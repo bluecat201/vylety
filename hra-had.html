@@ -189,11 +189,31 @@
 
             // Náraz (Game Over)
             if(snakeX < 0 || snakeX >= canvas.width || snakeY < 0 || snakeY >= canvas.height || snake.some(s => s.x === newHead.x && s.y === newHead.y)) {
+                
+                // 1. Okamžitě zastavíme hru a hudbu
                 clearInterval(gameLoop);
                 stopMusic();
-                saveHighScore('had', score);
-                alert("Konec hry! Skóre: " + score + "\nSkóre se ukládá...");
-                location.reload();
+                
+                // 2. Vizuální deaktivace ovládání
+                document.getElementById('game-container').style.opacity = "0.5";
+                document.getElementById('mobile-controls').style.pointerEvents = "none";
+
+                // 3. Asynchronní uložení skóre
+                async function handleGameOver() {
+                    try {
+                        // Čekáme na uložení do Firebase
+                        await saveHighScore('had', score);
+                        alert("Konec hry! ❤️\nVaše skóre: " + score + "\nSkóre bylo úspěšně uloženo do žebříčku.");
+                    } catch (error) {
+                        console.error("Chyba při ukládání:", error);
+                        alert("Konec hry! Skóre: " + score + "\n(Nepodařilo se připojit k žebříčku)");
+                    }
+                    
+                    // 4. Restart stránky po potvrzení alertu
+                    location.reload();
+                }
+
+                handleGameOver();
                 return;
             }
             snake.unshift(newHead);
