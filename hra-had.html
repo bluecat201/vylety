@@ -210,7 +210,9 @@
                         
                         alert("Konec hry! ❤️\nUživatel: " + jmenoProUlozeni + "\nVaše skóre: " + score);
                     } catch (error) {
-                        console.error("Chyba při ukládání:", error);
+                        console.error("❌ FULL ERROR:", error);
+                        console.error("❌ MESSAGE:", error.message);
+                        console.error("❌ STACK:", error.stack);
                         alert("Konec hry! Skóre: " + score);
                     }
                     
