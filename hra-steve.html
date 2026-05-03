@@ -204,12 +204,26 @@
             document.getElementById('lives').innerText = '❤️'.repeat(lives);
         }
 
-        function endGame() {
+        async function endGame() {
             isPlaying = false;
             stopMusic();
             clearTimeout(timer);
-            saveHighScore('steve', score);
-            alert("Konec! Steve tě dostal. Skóre: " + score);
+            
+            // Schováme herní plochu, aby hráč už nemohl klikat
+            document.getElementById('game-container').style.opacity = "0.5";
+            document.getElementById('game-container').style.pointerEvents = "none";
+
+            // Vytvoříme asynchronní proces pro uložení
+            try {
+                // await zajistí, že se počká, až Firebase potvrdí přijetí dat
+                await saveHighScore('steve', score);
+                alert("Konec! Steve tě dostal.\nVaše skóre: " + score + "\nSkóre bylo úspěšně uloženo do žebříčku.");
+            } catch (error) {
+                console.error("Chyba při ukládání:", error);
+                alert("Konec! Skóre: " + score + "\n(Při ukládání došlo k chybě)");
+            }
+
+            // Restart stránky až po dokončení uložení
             location.reload();
         }
 
