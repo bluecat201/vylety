@@ -148,16 +148,10 @@ async function saveHighScore(gameName, score) {
         return;
     }
 
-    // Získáme jméno a OŠETŘÍME ho
-    let finalName = sessionStorage.getItem("userName");
-    
-    // Pokud je null nebo string "null", zkusíme localStorage
-    if (!finalName || finalName === "null") {
-        finalName = localStorage.getItem("userName");
-    }
+    let finalName = localStorage.getItem("userName");
 
-    // Pokud je stále nic, dáme Anonyma
-    if (!finalName || finalName === "undefined") {
+    // fallback (kdyby fakt nebyl)
+    if (!finalName) {
         finalName = "Anonymní kočka";
     }
 
