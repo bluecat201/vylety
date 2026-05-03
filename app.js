@@ -35,6 +35,7 @@ function doLogin() {
       sessionStorage.setItem("isLogged", "true");
       sessionStorage.setItem("userRole", users[u].role);
       sessionStorage.setItem("userName", users[u].name);
+      localStorage.setItem("userName", users[u].name);
       document.getElementById("login-overlay").style.display = "none";
       
       if (users[u].role === "steve") {
@@ -143,30 +144,35 @@ function toggleGameMusic() {
 
 async function saveHighScore(gameName, score) {
     if (!db) {
-        console.error("Chyba: Databáze není připojena.");
+        console.error("Firestore není inicializován!");
         return;
     }
 
-    // 1. Získáme jméno přímo ze sessionStorage v momentě volání
-    let currentUser = sessionStorage.getItem("userName");
-    
-    // 2. Kontrola, jestli jméno existuje, pokud ne, zkusíme fallbacky
-    if (!currentUser || currentUser === "undefined") {
-        currentUser = localStorage.getItem("userName") || "Anonymní kočka";
+    // TADY JE TA ZMĚNA: Vytahujeme to VŽDY čerstvé ze sessionStorage
+    let finalName = sessionStorage.getItem("userName");
+
+    // Pokud je v sessionStorage prázdno, zkusíme localStorage (pro jistotu)
+    if (!finalName || finalName === "null" || finalName === "undefined") {
+        finalName = localStorage.getItem("userName");
     }
 
-    console.log("Odesílám skóre pro uživatele:", currentUser); // Tady uvidíš v konzoli jméno
+    // Pokud ani tam nic není, teprve pak dáme Anonyma
+    if (!finalName) {
+        finalName = "Anonymní kočka";
+    }
+
+    console.log(`Ukládám skóre: ${score} pro uživatele: ${finalName}`);
 
     try {
         await db.collection("leaderboards").doc(gameName).collection("scores").add({
-            user: currentUser,
-            score: Number(score), // Jistota, že skóre je číslo
+            user: finalName,
+            score: Number(score),
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             date: new Date().toLocaleDateString()
         });
-        console.log("Uloženo do Firebase pod jménem:", currentUser);
+        console.log("Zápis do DB proběhl úspěšně.");
     } catch (error) {
-        console.error("Chyba při zápisu do Firestore:", error);
+        console.error("Chyba při zápisu do DB:", error);
     }
 }
 
