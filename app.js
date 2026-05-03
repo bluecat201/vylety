@@ -141,28 +141,32 @@ function toggleGameMusic() {
 // FIRESTORE ŽEBŘÍČKY
 // =========================================
 
-// Opravená a sjednocená funkce pro ukládání skóre
 async function saveHighScore(gameName, score) {
     if (!db) {
-        console.error("Databáze není připojena!");
+        console.error("Chyba: Databáze není připojena.");
         return;
     }
 
-    // Získáme jméno ze sessionStorage (kam ho ukládáš při doLogin)
-    const loggedUser = sessionStorage.getItem("userName") || "Anonymní kočka";
-    const date = new Date().toLocaleDateString();
+    // 1. Získáme jméno přímo ze sessionStorage v momentě volání
+    let currentUser = sessionStorage.getItem("userName");
+    
+    // 2. Kontrola, jestli jméno existuje, pokud ne, zkusíme fallbacky
+    if (!currentUser || currentUser === "undefined") {
+        currentUser = localStorage.getItem("userName") || "Anonymní kočka";
+    }
+
+    console.log("Odesílám skóre pro uživatele:", currentUser); // Tady uvidíš v konzoli jméno
 
     try {
-        // await zajistí, že se počká na dokončení zápisu před reloadem stránky v HTML
         await db.collection("leaderboards").doc(gameName).collection("scores").add({
-            user: loggedUser,
-            score: score,
-            date: date,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            user: currentUser,
+            score: Number(score), // Jistota, že skóre je číslo
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            date: new Date().toLocaleDateString()
         });
-        console.log(`Skóre pro hráče ${loggedUser} uloženo!`);
+        console.log("Uloženo do Firebase pod jménem:", currentUser);
     } catch (error) {
-        console.error("Chyba při ukládání skóre do Firestore:", error);
+        console.error("Chyba při zápisu do Firestore:", error);
     }
 }
 
