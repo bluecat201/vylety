@@ -48,6 +48,10 @@ function doLogin() {
       sessionStorage.setItem("userRole", users[u].role);
       sessionStorage.setItem("userName", users[u].name);
       localStorage.setItem("userName", users[u].name);
+
+      // 🔥 TADY JE FIX
+      CURRENT_USER = users[u].name;
+
       document.getElementById("login-overlay").style.display = "none";
       
       if (users[u].role === "steve") {
@@ -55,6 +59,7 @@ function doLogin() {
       } else {
           alert(`Vítej zpět, ${users[u].name}! ❤️`);
       }
+
       loadState();
       applyRoleRestrictions();
   } else {
