@@ -73,11 +73,14 @@ const firebaseConfig = {
 };
 
 let db = null;
+let storage = null;
+
 try {
   if (typeof firebase !== 'undefined') {
       firebase.initializeApp(firebaseConfig);
       db = firebase.firestore();
-      console.log("Firebase (Firestore) připojen!");
+      storage = firebase.storage(); // Inicializace Storage
+      console.log("Firebase (Firestore + Storage) připojen!");
   }
 } catch (e) { 
   console.log("Firebase Error:", e); 
@@ -247,14 +250,6 @@ const data = {
         description: "Hotel Praděd Rýmařov se nachází v Rýmařově a nabízí ubytování s terasou, neplaceným soukromým parkovištěm a barem. Olomoucký hrad je 45 km daleko. Tento hotel se 3 hvězdičkami se nachází v budově z roku 1896. Sloup Nejsvětější Trojice je 47 km daleko a Praděd 27 km. Toto ubytování poskytuje konferenční a banketové prostory, restauraci s jídly místní kuchyně a bezplatné Wi-Fi ve všech prostorách. Hotel Praděd Rýmařov nabízí snídani formou bufetu nebo kontinentální snídani. Během pobytu v ubytování Hotel Praděd Rýmařov se můžete v Rýmařově a okolí věnovat různým aktivitám, jako je například lyžování a cyklistika. Muzeum papíru Velké Losiny se nachází 33 km od ubytování Hotel Praděd Rýmařov a Olomouc hlavní nádraží 45 km od ubytování. Letiště Leoše Janáčka Ostrava leží 84 km daleko. Hostům, kteří se zde ubytovali v páru, se velmi líbila lokalita.",
         rating: 8.4,
         price: "3 788 Kč"
-      },
-      {
-        name: "Hotel Petrovy kameny", 
-        city: "Karlova Studánka", 
-        link: "https://www.booking.com/Share-4kqpb7", 
-        description: "Hotel Petrovy kameny se nachází v destinaci Karlova Studánka a poskytuje ubytování s fitness centrem, soukromým parkovištěm, zahradou a sdíleným loungem. Praděd je 2,7 km daleko. Ubytování nabízí dětský klub a dětské hřiště. Tento hotel má terasu a výhled na hory. Na jídlo lze zajít do restaurace a na skleničku do baru. V ubytování Hotel Petrovy kameny mají všechny pokoje psací stůl a TV s plochou obrazovkou. Vybavení všech pokojů zahrnuje kávovar a vlastní koupelnu s bezplatnými toaletními potřebami a některé pokoje zahrnují kuchyň s lednicí. Všechny pokoje v ubytování Hotel Petrovy kameny mají v ceně ložní prádlo a ručníky. V ubytování Hotel Petrovy kameny se připravuje snídaně formou bufetu a kontinentální snídaně. V ubytování Hotel Petrovy kameny můžete využívat hammam. V tomto hotelu se 4 hvězdičkami můžete hrát stolní tenis a zdejší oblast je oblíbená u milovníků lyžování a cyklistiky. Muzeum papíru Velké Losiny se nachází 26 km od ubytování Hotel Petrovy kameny. Letiště Leoše Janáčka Ostrava leží 96 km daleko. Hostům, kteří se zde ubytovali v páru, se velmi líbila lokalita",
-        rating: 9.7,
-        price: "od 5 400 Kč"
       },
       {
         name: "Horský hotel Vidly", 

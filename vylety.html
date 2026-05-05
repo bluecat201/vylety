@@ -15,6 +15,7 @@
 <!-- Firebase App & Firestore (v9 compat) -->
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-storage-compat.js"></script>
 </head>
 <body>
 
@@ -267,17 +268,53 @@ function triggerPhotoUpload(id) { currentTripIdForPhoto = id; document.getElemen
 
 function handlePhotos(event) { processFiles(event.target.files); event.target.value = ""; }
 
-function processFiles(files) {
+async function processFiles(files) {
   if (!files.length || !currentTripIdForPhoto) return;
   const trip = pastTrips.find(t => t.id === currentTripIdForPhoto);
-  
-  // Zpracování každého souboru
-  Array.from(files).forEach(file => {
-      if (!file.type.startsWith('image/')) return; // Zabrání nahrátí PDF apod.
-      const reader = new FileReader();
-      reader.onload = (e) => { trip.photos.push(e.target.result); saveState(); renderPastTrips(); };
-      reader.readAsDataURL(file);
-  });
+  if (!trip) return;
+
+  // Najdeme tlačítko a ukážeme, že se načítá (nahrávání chvíli trvá)
+  const uploadBtns = document.querySelectorAll('.admin-only-btn');
+  let currentBtn = Array.from(uploadBtns).find(btn => btn.innerText.includes('📸'));
+  const originalText = currentBtn ? currentBtn.innerText : '📸 Přidat fotky';
+  if(currentBtn) {
+      currentBtn.innerText = "⏳ Nahrávám...";
+      currentBtn.disabled = true;
+  }
+
+  try {
+      // Projdeme všechny vybrané/přetažené soubory
+      for (const file of files) {
+          if (!file.type.startsWith('image/')) continue; 
+          
+          // Vytvoříme unikátní cestu pro fotku (např. trips/12345/168000_fotka.jpg)
+          const fileName = `trips/${trip.id}/${Date.now()}_${file.name}`;
+          const storageRef = firebase.storage().ref().child(fileName);
+          
+          // 1. Nahrajeme fotku do Firebase Storage
+          const snapshot = await storageRef.put(file);
+          
+          // 2. Získáme URL adresu nahrané fotky
+          const downloadURL = await snapshot.ref.getDownloadURL();
+          
+          // 3. Uložíme jen URL adresu, ne obří soubor
+          trip.photos.push(downloadURL);
+      }
+      
+      // Jakmile jsou fotky nahrané, uložíme stav.
+      // Tím se spustí onSnapshot a druhé polovičce se to hned ukáže na displeji!
+      saveState(); 
+      renderPastTrips();
+      
+  } catch (error) {
+      console.error("Chyba při nahrávání:", error);
+      alert("Fotku se nepodařilo nahrát. Zkontroluj připojení nebo Firebase pravidla.");
+  } finally {
+      if(currentBtn) {
+          currentBtn.innerText = originalText;
+          currentBtn.disabled = false;
+      }
+  }
 }
 
 function deletePhoto(tripId, photoIndex) { const trip = pastTrips.find(t => t.id === tripId); if(trip) { trip.photos.splice(photoIndex, 1); saveState(); renderPastTrips(); } }
