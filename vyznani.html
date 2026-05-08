@@ -35,10 +35,42 @@
         }
         h1 {
             color: #e94560;
-            font-size: 2.5em;
+            font-size: 3em;
             margin-bottom: 30px;
-            text-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
             font-family: 'Dancing Script', cursive;
+            position: relative;
+            display: inline-block;
+            /* Animovaný gradient v textu */
+            background: linear-gradient(to right, #e94560, #ff4d6d, #e94560);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 3s linear infinite;
+            text-shadow: 0 0 15px rgba(233, 69, 96, 0.3);
+        }
+
+        /* Ozdobné linky vedle nadpisu */
+        h1::before, h1::after {
+            content: " ✨ ";
+            font-size: 0.5em;
+            vertical-align: middle;
+            opacity: 0.8;
+        }
+
+        /* Spodní ozdobná linka */
+        h1::after {
+            content: "";
+            position: absolute;
+            bottom: -5px;
+            left: 10%;
+            width: 80%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e94560, transparent);
+        }
+
+        /* Animace pro lesk textu */
+        @keyframes shine {
+            to { background-position: 200% center; }
         }
         .letter {
             text-align: left;
@@ -54,26 +86,74 @@
             font-weight: bold;
         }
         .signature-container {
-            margin-top: 40px;
+            margin-top: 50px;
+            position: relative;
         }
+
         .special-signature {
             cursor: pointer;
-            font-style: italic;
-            font-size: 1.3em;
-            background: #e94560;
-            display: inline-block;
-            padding: 10px 30px;
-            border-radius: 50px;
-            color: white;
-            border: none;
-            transition: 0.3s;
-            box-shadow: 0 4px 15px rgba(233,69,96,0.3);
             font-family: 'Dancing Script', cursive;
-            font-weight: bold;
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #fff;
+            background: none; /* Odstraníme nudné pozadí tlačítka */
+            border: none;
+            position: relative;
+            padding: 10px 40px;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            letter-spacing: 1px;
         }
+
+        /* Ozdobné linky okolo jména */
+        .special-signature::before, 
+        .special-signature::after {
+            content: "";
+            position: absolute;
+            width: 50px;
+            height: 1px;
+            background: #e94560;
+            top: 50%;
+            transition: all 0.5s ease;
+            box-shadow: 0 0 8px #e94560;
+        }
+
+        .special-signature::before {
+            left: -20px;
+        }
+
+        .special-signature::after {
+            right: -20px;
+        }
+
+        /* Efekt při najetí myší */
         .special-signature:hover {
-            transform: scale(1.1);
-            background: #ff4d6d;
+            transform: scale(1.1) rotate(2deg);
+            color: #e94560;
+            text-shadow: 0 0 15px rgba(233, 69, 96, 0.8);
+        }
+
+        .special-signature:hover::before {
+            left: -40px;
+            width: 80px;
+            background: #fff;
+        }
+
+        .special-signature:hover::after {
+            right: -40px;
+            width: 80px;
+            background: #fff;
+        }
+
+        /* Malý detail pod jménem */
+        .signature-sub {
+            display: block;
+            font-size: 0.4em;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            margin-top: -5px;
+            opacity: 0.6;
+            color: #e94560;
         }
         .back-btn {
             display: block;
@@ -128,6 +208,42 @@
             0% { transform: translateY(100vh) rotate(0deg); opacity: 1; }
             100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
         }
+
+        /* Kontejner pro vzkaz po explozi */
+        #final-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 200;
+            display: none;
+            width: 90%;
+        }
+
+        .typing-text {
+            font-family: 'Dancing Script', cursive;
+            font-size: 3.5em;
+            color: #fff;
+            text-shadow: 0 0 20px #e94560, 0 0 40px #e94560;
+            margin: 0;
+        }
+
+        /* Animace pro zmizení dopisu */
+        .fade-out {
+            opacity: 0;
+            transform: scale(0.9) translateY(-20px) !important;
+            transition: all 1.5s ease-in-out;
+            pointer-events: none;
+        }
+
+        /* Styl pro částice exploze */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 150;
+            font-size: 20px;
+        }
     </style>
 </head>
 <body>
@@ -147,7 +263,10 @@
         </div>
         
         <div class="signature-container">
-            <button class="special-signature" onclick="startSpecialEffect()">Tvůj Bluecat</button>
+            <button class="special-signature" onclick="startSpecialEffect()">
+                Tvůj Bluecat
+                <span class="signature-sub">navždy</span>
+            </button>
         </div>
         
         <a href="index.html" class="back-btn">← Zpět na hlavní stránku</a>
@@ -164,33 +283,83 @@
             document.body.appendChild(heart);
             setTimeout(() => heart.remove(), 6000);
         }
-        setInterval(createHeart, 500);
+        
+        // Původní mírné sněžení srdíček na pozadí
+        setInterval(createHeart, 600);
 
         function startSpecialEffect() {
-            const heart = document.getElementById('huge-heart');
-            const msg = document.getElementById('overlay-msg');
             const container = document.getElementById('main-container');
+            const finalMsgContainer = document.getElementById('final-message');
+            const typingSpan = document.querySelector('.typing-text');
             
-            // Effect sequence
-            heart.classList.add('active');
-            
+            // 1. Zmizení dopisu
+            container.classList.add('fade-out');
+
+            // 2. Exploze srdíček z místa kliknutí
+            const rect = event.target.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            for (let i = 0; i < 100; i++) {
+                setTimeout(() => createParticle(centerX, centerY), i * 10);
+            }
+
+            // 3. Zobrazení finálního vzkazu
             setTimeout(() => {
-                msg.classList.add('active');
-                // Increase heart density
-                for(let i=0; i<50; i++) {
-                    setTimeout(createHeart, i * 50);
+                container.style.display = 'none';
+                finalMsgContainer.style.display = 'block';
+                typeWriter("Jsi pro mě vším...", typingSpan);
+            }, 1000);
+        }
+
+        function createParticle(x, y) {
+            const p = document.createElement('div');
+            p.classList.add('particle');
+            const hearts = ['❤️', '💖', '✨', '🌸', '🐱'];
+            p.innerHTML = hearts[Math.floor(Math.random() * hearts.length)];
+            p.style.left = x + 'px';
+            p.style.top = y + 'px';
+            document.body.appendChild(p);
+
+            const angle = Math.random() * Math.PI * 2;
+            const velocity = Math.random() * 12 + 5;
+            const vx = Math.cos(angle) * velocity;
+            const vy = Math.sin(angle) * velocity;
+            let posX = x;
+            let posY = y;
+            let opacity = 1;
+
+            const anim = setInterval(() => {
+                posX += vx;
+                posY += vy;
+                opacity -= 0.01;
+                p.style.left = posX + 'px';
+                p.style.top = posY + 'px';
+                p.style.opacity = opacity;
+                p.style.transform = `scale(${opacity * 1.5}) rotate(${posX}deg)`;
+
+                if (opacity <= 0) {
+                    clearInterval(anim);
+                    p.remove();
                 }
-            }, 500);
+            }, 16);
+        }
 
-            // Pulse effect
-            let scale = 1;
-            const interval = setInterval(() => {
-                scale = scale === 1 ? 1.1 : 1;
-                heart.style.transform = `translate(-50%, -50%) scale(${scale})`;
-            }, 600);
-
-            // Optional: reset after some time or just let it be
+        function typeWriter(text, element) {
+            let i = 0;
+            element.innerHTML = '';
+            const timer = setInterval(() => {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                } else {
+                    clearInterval(timer);
+                }
+            }, 150);
         }
     </script>
 </body>
+<div id="final-message">
+        <h2 class="typing-text"></h2>
+    </div>
 </html>
