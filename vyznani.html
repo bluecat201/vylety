@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Tebe, Bastet</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        .container {
+            max-width: 700px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            text-align: center;
+            position: relative;
+            margin: 20px;
+            z-index: 2;
+        }
+        h1 {
+            color: #e94560;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(233, 69, 96, 0.5);
+        }
+        .letter {
+            text-align: left;
+            line-height: 1.8;
+            font-size: 1.1em;
+            color: #e0e0e0;
+        }
+        .highlight {
+            color: #e94560;
+            font-weight: bold;
+        }
+        .signature-container {
+            margin-top: 40px;
+        }
+        .special-signature {
+            cursor: pointer;
+            font-style: italic;
+            font-size: 1.3em;
+            background: #e94560;
+            display: inline-block;
+            padding: 10px 30px;
+            border-radius: 50px;
+            color: white;
+            border: none;
+            transition: 0.3s;
+            box-shadow: 0 4px 15px rgba(233,69,96,0.3);
+        }
+        .special-signature:hover {
+            transform: scale(1.1);
+            background: #ff4d6d;
+        }
+        .back-btn {
+            display: block;
+            margin-top: 30px;
+            color: #888;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+        /* Fullscreen heart effect */
+        #huge-heart {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 500px;
+            z-index: 100;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            opacity: 0;
+        }
+        #huge-heart.active {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+        .overlay-message {
+            position: fixed;
+            top: 65%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 101;
+            font-size: 2.5em;
+            font-weight: bold;
+            color: white;
+            text-shadow: 0 0 20px black;
+            opacity: 0;
+            transition: 1s ease-in;
+            text-align: center;
+            width: 100%;
+            pointer-events: none;
+        }
+        .overlay-message.active {
+            opacity: 1;
+        }
+        .heart {
+            position: absolute;
+            color: #e94560;
+            opacity: 0.3;
+            animation: float 6s infinite ease-in;
+            z-index: 1;
+        }
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="huge-heart">❤️</div>
+    <div id="overlay-msg" class="overlay-message">Miluju Tě!</div>
+
+    <div class="container" id="main-container">
+        <h1>Pro Bastet... ❤️</h1>
+        <div class="letter">
+            <p>Vím, že to včera bylo těžké, vlastně nejen včera. Uvědomuju si, že moje mlčení a ty strohé odpovědi bolely mnohem víc, než jsem si v tu chvíli dokázal připustit. Strašně mě mrzí, že jsem tu pro Tebe nebyl tou oporou, kterou jsi potřebovala – hlavně ve chvíli, kdy Ti bylo fyzicky i psychicky zle. Vidět Tě v tom nechat samotnou byla moje největší chyba.</p>
+
+            <p>Často mě ochromuje <span class="highlight">strach</span>. Je to ten druh strachu, který mi svazuje ruce i slova. Strach, že napíšu něco blbě, že mě špatně pochopíš, nebo že prostě nebudu dost dobrý pro někoho tak výjimečného, jako jsi Ty. Ale ta včerejší noc mi otevřela oči: radši Ti napíšu tisíc „hloupostí“ a klidně se shodím, než abych Tě nechal byť jen vteřinu v nejistotě, jestli mi na Tobě záleží. Už nikdy nechci přidávat další „důkazy“ k té lži, že pro mě nic neznamenáš.</p>
+
+            <p><span class="highlight">Záleží mi na Tobě kurva hodně.</span> Nejsi pro mě jen kamarádka a popravdě jsi jí nikdy ani nebyla. Jsi člověk, který mi naprosto přenastavil svět. Myslím na Tebe od první vteřiny, co se ráno proberu, až do momentu, kdy mě v noci vypne únava. Těch 160 km mezi námi je sice dálka, ale v mý hlavě a srdci jsi mi blíž než kdokoli jiný, koho mám přímo vedle sebe.</p>
+
+            <p>Chci Ti dokázat, že jsi moje priorita. Nejen tímhle kódem a webem, kterým se Ti snažím ukázat svůj svět, ale vším, co dělám. Chci, abys ten zájem cítila v každé zprávě, v každém hovoru a hlavně v každé vteřině, kdy budeme spolu. Nechci už jen slibovat – chci tu pro Tebe prostě <span class="highlight">být</span>. Každý den. Bezpečně a naplno.</p>
+        </div>
+        
+        <div class="signature-container">
+            <button class="special-signature" onclick="startSpecialEffect()">Tvůj Bluecat</button>
+        </div>
+        
+        <a href="index.html" class="back-btn">← Zpět na hlavní stránku</a>
+    </div>
+
+    <script>
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.innerHTML = '❤️';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.animationDuration = Math.random() * 3 + 3 + 's';
+            heart.style.fontSize = Math.random() * 20 + 10 + 'px';
+            document.body.appendChild(heart);
+            setTimeout(() => heart.remove(), 6000);
+        }
+        setInterval(createHeart, 500);
+
+        function startSpecialEffect() {
+            const heart = document.getElementById('huge-heart');
+            const msg = document.getElementById('overlay-msg');
+            const container = document.getElementById('main-container');
+            
+            // Effect sequence
+            heart.classList.add('active');
+            
+            setTimeout(() => {
+                msg.classList.add('active');
+                // Increase heart density
+                for(let i=0; i<50; i++) {
+                    setTimeout(createHeart, i * 50);
+                }
+            }, 500);
+
+            // Pulse effect
+            let scale = 1;
+            const interval = setInterval(() => {
+                scale = scale === 1 ? 1.1 : 1;
+                heart.style.transform = `translate(-50%, -50%) scale(${scale})`;
+            }, 600);
+
+            // Optional: reset after some time or just let it be
+        }
+    </script>
+</body>
+</html>
